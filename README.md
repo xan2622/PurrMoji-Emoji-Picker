@@ -2,9 +2,7 @@
 
 **PurrMoji Emoji Picker** is a lightweight open-source emoji picker designed to make browsing, searching, and copying emojis quick and easy.
 
-<img width="30%" height="30%" alt="light theme" src="https://github.com/user-attachments/assets/614b28fc-6326-4fb6-9762-a0ee1379bc1f" />
-<img width="30%" height="30%" alt="medium theme" src="https://github.com/user-attachments/assets/97b61c53-32e0-4b41-bb55-039c4b3290a8" />
-<img width="30%" height="30%" alt="dark theme" src="https://github.com/user-attachments/assets/d24a91a9-2416-4af5-9c11-10b8936ebdfb" />
+<img width="30%" height="30%" alt="light theme" src="https://github.com/xan2622/PurrMoji-Emoji-Picker/blob/Skia-Python_PyQt5/images/screenshot_light.png" /> <img width="30%" height="30%" alt="medium theme" src="https://github.com/xan2622/PurrMoji-Emoji-Picker/blob/Skia-Python_PyQt5/images/screenshot_medium.png" /> <img width="30%" height="30%" alt="dark theme" src="https://github.com/xan2622/PurrMoji-Emoji-Picker/blob/Skia-Python_PyQt5/images/screenshot_dark.png" />
 </br>
 
 Supported emoji packages:
