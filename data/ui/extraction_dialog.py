@@ -139,7 +139,7 @@ class ExtractionDialog(QDialog):
         # Info label
         self.info_label = QLabel(
             "This operation only happens once.\n"
-            "Emoji packages are being extracted to your user directory."
+            "Emoji packages are being extracted to the application data folder."
         )
         self.info_label.setAlignment(Qt.AlignCenter)
         info_font = QFont()
