@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   id="emoji"
+   viewBox="0 0 72 72"
+   version="1.1"
+   sodipodi:docname="Recent_Favorites.svg"
+   inkscape:version="1.4.2 (f4327f4, 2025-05-13)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs4" />
+  <sodipodi:namedview
+     id="namedview4"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="9.0990894"
+     inkscape:cx="44.839652"
+     inkscape:cy="42.476778"
+     inkscape:window-width="3840"
+     inkscape:window-height="2071"
+     inkscape:window-x="-9"
+     inkscape:window-y="-9"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="emoji" />
+  <g
+     id="hair" />
+  <g
+     id="skin" />
+  <g
+     id="skin-shadow" />
+  <g
+     id="g1"
+     transform="translate(-1.4065302,-1.0917463)">
+    <g
+       id="color"
+       transform="matrix(0.83333333,0,0,0.83333333,-2.9650001,-2.991668)">
+      <circle
+         cx="35.958"
+         cy="35.990002"
+         r="23"
+         fill="#ffffff"
+         stroke="none"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         stroke-miterlimit="10"
+         stroke-width="2"
+         id="circle1" />
+      <line
+         x1="36"
+         x2="36"
+         y1="18.9893"
+         y2="35.9893"
+         fill="#ffffff"
+         stroke="none"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         stroke-miterlimit="10"
+         stroke-width="2"
+         id="line1" />
+      <line
+         x1="41.843498"
+         x2="36.07"
+         y1="25.7929"
+         y2="35.7929"
+         fill="#ffffff"
+         stroke="none"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         stroke-miterlimit="10"
+         stroke-width="2"
+         id="line2" />
+    </g>
+    <g
+       id="line"
+       transform="matrix(0.83333333,0,0,0.83333333,-2.9650001,-2.991668)">
+      <circle
+         cx="35.958"
+         cy="35.990002"
+         r="23"
+         fill="none"
+         stroke="#000000"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         stroke-miterlimit="10"
+         stroke-width="2"
+         id="circle2" />
+      <line
+         x1="36"
+         x2="36"
+         y1="18.9893"
+         y2="35.9893"
+         fill="none"
+         stroke="#000000"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         stroke-miterlimit="10"
+         stroke-width="2"
+         id="line3" />
+      <line
+         x1="41.843498"
+         x2="36.07"
+         y1="25.7929"
+         y2="35.7929"
+         fill="none"
+         stroke="#000000"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         stroke-miterlimit="10"
+         stroke-width="2"
+         id="line4" />
+    </g>
+    <g
+       id="color-9"
+       transform="matrix(0.69947383,0,0,0.69947383,24.655525,23.536367)">
+      <path
+         fill="#ea5a47"
+         d="m 60.7,26.2 c 0,-7.2 -5.9,-13.1 -13.1,-13.1 -5,0 -9.3,2.8 -11.5,6.9 -2.2,-4.1 -6.6,-6.9 -11.5,-6.9 -7.2,0 -13.1,5.9 -13.1,13.1 0,3.1 1.1,6 2.9,8.2 v 0 l 21.8,27 21.8,-27 v 0 c 1.6,-2.2 2.7,-5 2.7,-8.2 z"
+         id="path1" />
+    </g>
+    <g
+       id="line-4"
+       transform="matrix(0.69947383,0,0,0.69947383,24.655525,23.536367)">
+      <path
+         fill="none"
+         stroke="#000000"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         stroke-width="2"
+         d="m 60.7,26.2 c 0,-7.2 -5.9,-13.1 -13.1,-13.1 -5,0 -9.3,2.8 -11.5,6.9 -2.2,-4.1 -6.6,-6.9 -11.5,-6.9 -7.2,0 -13.1,5.9 -13.1,13.1 0,3.1 1.1,6 2.9,8.2 v 0 l 21.8,27 21.8,-27 v 0 c 1.6,-2.2 2.7,-5 2.7,-8.2 z"
+         id="path2" />
+    </g>
+  </g>
+</svg>
