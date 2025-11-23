@@ -95,15 +95,14 @@ The "Custom" folder allows you to add your own PNG/SVG/TTF icons or emojis. The 
 | **SVG Icons:** [SVGrepo.com](https://www.svgrepo.com/) | [SVGrepo Licensing (CC0)](https://www.svgrepo.com/page/licensing/) |
 | **PNG Icons:** [3dicons.co](https://3dicons.co/) | [3dicons License (CC0)](https://3dicons.co/about) |
 
+### UI Icons Credits
+
+| Icon | Source | License |
+|---|---|---|
+| **Sleeping Kitty** | [freesvg.org/sleeping-kitty](https://freesvg.org/sleeping-kitty) | Public Domain |
+| **Mono Contrast** | [freesvg.org/mono-contrast](https://freesvg.org/mono-contrast) | Public Domain |
+| **Refresh** | [icons8.com/icon/14296/refresh](https://icons8.com/icon/14296/refresh) | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) |
+
 ### PurrMoji
 
 - PurrMoji has been released under the [GPL 3.0 license](https://www.gnu.org/licenses/gpl-3.0.en.html). This license only covers the source code of PurrMoji.
-- The few custom SVG icons it uses for its UI are released under the [CC BY-SA 4.0 license](https://creativecommons.org/licenses/by-sa/4.0/deed.en). It also uses some of the emojis from the current package.
-
-### UI Icons Credits
-
-|| Icon | Source | License |
-||---|---|---|
-|| **Sleeping Kitty** | [freesvg.org/sleeping-kitty](https://freesvg.org/sleeping-kitty) | Public Domain |
-|| **Mono Contrast** | [freesvg.org/mono-contrast](https://freesvg.org/mono-contrast) | Public Domain |
-|| **Refresh** | [icons8.com/icon/14296/refresh](https://icons8.com/icon/14296/refresh) | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) by Icons8 LLC |
