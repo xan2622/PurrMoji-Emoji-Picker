@@ -10,6 +10,8 @@ PathManager - Centralized path management for emoji packages
 import os
 import sys
 import platform
+import subprocess
+import shutil
 
 
 class PathManager:
@@ -276,4 +278,72 @@ class PathManager:
         if key not in paths:
             raise KeyError(f"Path key '{key}' not found. Available keys: {list(paths.keys())}")
         return paths[key]
+    
+    @staticmethod
+    def open_folder_in_explorer(folder_path):
+        """Open a folder in the system file explorer (cross-platform)
+        
+        This method handles:
+        - Windows: Uses os.startfile()
+        - macOS: Uses 'open' command
+        - Linux: Tries multiple file managers (xdg-open, gnome-open, kde-open, etc.)
+        
+        Args:
+            folder_path (str): Path to the folder to open
+            
+        Returns:
+            bool: True if successful, False otherwise
+        """
+        # Ensure the directory exists
+        os.makedirs(folder_path, exist_ok=True)
+        
+        system = platform.system()
+        
+        try:
+            if system == "Windows":
+                # Windows native
+                os.startfile(folder_path)
+                return True
+                
+            elif system == "Darwin":
+                # macOS
+                subprocess.run(["open", folder_path], check=True)
+                return True
+                
+            elif system == "Linux":
+                # Linux: Try multiple file managers in order of preference
+                file_managers = [
+                    "xdg-open",       # Standard Linux opener
+                    "gnome-open",     # GNOME
+                    "kde-open",       # KDE
+                    "exo-open",       # XFCE
+                    "nautilus",       # GNOME Files
+                    "dolphin",        # KDE Dolphin
+                    "thunar",         # XFCE Thunar
+                    "pcmanfm",        # LXDE
+                    "caja"            # MATE
+                ]
+                
+                for manager in file_managers:
+                    # Check if command exists
+                    if shutil.which(manager):
+                        try:
+                            subprocess.run([manager, folder_path], check=True)
+                            return True
+                        except subprocess.CalledProcessError:
+                            # Try next manager
+                            continue
+                
+                # If no file manager works, print error
+                print(f"[ERROR] No file manager found. Please install one of: {', '.join(file_managers)}", file=sys.stderr)
+                return False
+            
+            else:
+                # Unknown system
+                print(f"[ERROR] Unsupported operating system: {system}", file=sys.stderr)
+                return False
+                
+        except Exception as e:
+            print(f"[ERROR] Failed to open folder '{folder_path}': {e}", file=sys.stderr)
+            return False
 

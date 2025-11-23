@@ -1,6 +1,6 @@
 # PurrMoji Emoji Picker
 
-**PurrMoji Emoji Picker** is a lightweight open-source emoji picker designed to make browsing, searching, and copying emojis quick and easy.
+**PurrMoji** is a lightweight cross-platform open-source emoji picker designed to make browsing, searching, and copying emojis quick and easy.
 
 <img width="30%" height="30%" alt="light theme" src="https://github.com/xan2622/PurrMoji-Emoji-Picker/blob/Skia-Python_PyQt5/images/screenshot_light.png" /> <img width="30%" height="30%" alt="medium theme" src="https://github.com/xan2622/PurrMoji-Emoji-Picker/blob/Skia-Python_PyQt5/images/screenshot_medium.png" /> <img width="30%" height="30%" alt="dark theme" src="https://github.com/xan2622/PurrMoji-Emoji-Picker/blob/Skia-Python_PyQt5/images/screenshot_dark.png" />
 </br>
@@ -16,7 +16,7 @@ Supported emoji packages:
 | **Kaomoji** | Includes support for various kaomoji sets |
 | **Custom** | Allows you to add your own images, icons or emojis (PNG, SVG, TTF) |
 
-## 💡 Origin of PurrMoji Emoji Picker
+## 💡 Origin of PurrMoji
 
 This project was initially created specifically for the **[OpenMoji](https://openmoji.org/)** open-source emoji library. OpenMoji's mission is to create and maintain a consistent set of open-source emojis but not to develop an emoji picker app, hence this software.
 
@@ -43,7 +43,7 @@ Since then, the goal of the PurrMoji project has evolved, expanding its support 
 
 ## 💬 Feedback & Community
 
-If you have ideas or want to report a bug about **PurrMoji Emoji Picker**, feel free to [open an issue](https://github.com/xan2622/PurrMoji-Emoji-Picker/issues) on this Github repository.
+If you have ideas or want to report a bug about **PurrMoji**, feel free to [open an issue](https://github.com/xan2622/PurrMoji-Emoji-Picker/issues) on this Github repository.
 
 If you want to contribute to the emoji library projects themselves, please visit their respective repositories linked above.
 
@@ -72,14 +72,14 @@ The Custom emoji folder and Kaomoji data remain in the application directory and
   
 ### Emoji Packages
 
-Each emoji package included in PurrMoji Emoji Picker retains its original license:
+Each emoji package included in PurrMoji retains its original license:
 
 | Emoji Package | License |
 |---|---|
 | **Emojitwo (2.2.5)** | <a href="https://emojitwo.github.io/#emojione-2x-artwork-license">https://emojitwo.github.io/#emojione-2x-artwork-license</a> |
 | **Noto Emoji (17.0)** | <a href="https://github.com/googlefonts/noto-emoji?tab=OFL-1.1-1-ov-file">https://github.com/googlefonts/noto-emoji?tab=OFL-1.1-1-ov-file</a> |
 | **OpenMoji (16.0)** | <a href="https://github.com/hfg-gmuend/openmoji?tab=CC-BY-SA-4.0-1-ov-file#readme">https://github.com/hfg-gmuend/openmoji?tab=CC-BY-SA-4.0-1-ov-file#readme</a> |
-| **Segoe UI Emoji (1.33)** | <a href="https://learn.microsoft.com/en-us/typography/fonts/font-faq">https://learn.microsoft.com/en-us/typography/fonts/font-faq</a> (these emojis are not bundled in PurrMoji, they are just displayed) |
+| **Segoe UI Emoji (1.33)** | <a href="https://learn.microsoft.com/en-us/typography/fonts/font-faq">https://learn.microsoft.com/en-us/typography/fonts/font-faq</a> (these emojis are not bundled in PurrMoji, they are just displayed on Windows and not available on Linux) |
 | **Twemoji (14.0)** | <a href="https://github.com/twitter/twemoji/blob/master/LICENSE-GRAPHICS">https://github.com/twitter/twemoji/blob/master/LICENSE-GRAPHICS</a> |
 
 Each emoji has been designed by contributors to their respective projects, who remain the original authors of their works. 
@@ -95,7 +95,15 @@ The "Custom" folder allows you to add your own PNG/SVG/TTF icons or emojis. The 
 | **SVG Icons:** [SVGrepo.com](https://www.svgrepo.com/) | [SVGrepo Licensing (CC0)](https://www.svgrepo.com/page/licensing/) |
 | **PNG Icons:** [3dicons.co](https://3dicons.co/) | [3dicons License (CC0)](https://3dicons.co/about) |
 
-### PurrMoji Emoji Picker
+### PurrMoji
 
-- PurrMoji Emoji Picker has been released under the [GPL 3.0 license](https://www.gnu.org/licenses/gpl-3.0.en.html). This license only covers the source code of PurrMoji.
+- PurrMoji has been released under the [GPL 3.0 license](https://www.gnu.org/licenses/gpl-3.0.en.html). This license only covers the source code of PurrMoji.
 - The few custom SVG icons it uses for its UI are released under the [CC BY-SA 4.0 license](https://creativecommons.org/licenses/by-sa/4.0/deed.en). It also uses some of the emojis from the current package.
+
+### UI Icons Credits
+
+|| Icon | Source | License |
+||---|---|---|
+|| **Sleeping Kitty** | [freesvg.org/sleeping-kitty](https://freesvg.org/sleeping-kitty) | Public Domain |
+|| **Mono Contrast** | [freesvg.org/mono-contrast](https://freesvg.org/mono-contrast) | Public Domain |
+|| **Refresh** | [icons8.com/icon/14296/refresh](https://icons8.com/icon/14296/refresh) | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) by Icons8 LLC |

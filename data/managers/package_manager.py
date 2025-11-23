@@ -19,10 +19,6 @@ class PackageManager:
         """
         self.path_manager = path_manager
         self.packages = self.build_package_configs()
-        
-        # Display detected packages
-        detected_packages = list(self.packages.keys())
-        print(f"Detected emoji packages: {', '.join(detected_packages)}")
     
     def build_package_configs(self):
         """Build configuration for all emoji packages

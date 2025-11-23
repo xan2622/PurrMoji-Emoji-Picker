@@ -13,7 +13,7 @@ from PyQt5.QtWidgets import (QDialog, QVBoxLayout, QHBoxLayout, QPushButton, QSc
                              QWidget, QLabel, QApplication)
 from PyQt5.QtCore import Qt, QUrl
 from PyQt5.QtGui import QIcon, QFont, QPixmap, QDesktopServices
-from managers import ThemeManager, PathManager
+from managers import ThemeManager, PathManager, FontManager
 from ui.base_dialog import ThemedDialogMixin
 
 
@@ -45,7 +45,7 @@ class AboutDialog(ThemedDialogMixin, QDialog):
             self.current_theme = parent.data_manager.theme
         
         # Get custom color for category/subcategory
-        category_subcategory_color = '#5555ff'
+        category_subcategory_color = '#00557f'
         if parent and hasattr(parent, 'category_subcategory_color'):
             category_subcategory_color = parent.category_subcategory_color
         
@@ -80,8 +80,8 @@ class AboutDialog(ThemedDialogMixin, QDialog):
         title_row_layout.setSpacing(10)  # 10px spacing between title and icon
         
         # Title
-        title_label = QLabel("About PurrMoji Emoji Picker")
-        title_font = QFont("Segoe UI", 12, QFont.Bold)
+        title_label = QLabel("About PurrMoji")
+        title_font = FontManager.get_font(12, QFont.Bold)
         title_label.setFont(title_font)
         title_label.setStyleSheet(f"color: {link_color}; margin-bottom: 10px;")
         title_row_layout.addWidget(title_label)
@@ -101,7 +101,7 @@ class AboutDialog(ThemedDialogMixin, QDialog):
         content_layout.addLayout(title_row_layout)
         
         # Main description with rich text for links
-        desc_text = ("PurrMoji Emoji Picker is an open-source emoji picker developed in Python and released "
+        desc_text = ("PurrMoji is an open-source emoji picker developed in Python and released "
                     "under the GPL 3.0 license. This license only covers the source code of PurrMoji.<br><br>"
                     "All emojis are made by their respective authors and are released under their respective "
                     "licenses, see links below.<br><br>"
@@ -119,7 +119,7 @@ class AboutDialog(ThemedDialogMixin, QDialog):
                     f'following Github repository: <a href="https://github.com/xan2622/PurrMoji-Emoji-Picker" style="color: {link_color}; text-decoration: none;">https://github.com/xan2622/PurrMoji-Emoji-Picker</a>')
         desc_label = QLabel(desc_text)
         desc_label.setWordWrap(True)
-        desc_label.setFont(QFont("Segoe UI", 10))
+        desc_label.setFont(FontManager.get_font(10))
         desc_label.setOpenExternalLinks(True)
         desc_label.setTextFormat(Qt.RichText)
         desc_label.setStyleSheet("QLabel { background-color: transparent; } QLabel a:hover { text-decoration: underline; }")
@@ -130,7 +130,7 @@ class AboutDialog(ThemedDialogMixin, QDialog):
         discord_link = QLabel(f'If you want to chat about PurrMoji, you can join my Discord server: <a href="{discord_url}" style="color: {link_color}; text-decoration: none;">{discord_url}</a>')
         discord_link.setOpenExternalLinks(True)
         discord_link.setTextFormat(Qt.RichText)
-        discord_link.setFont(QFont("Segoe UI", 10))
+        discord_link.setFont(FontManager.get_font(10))
         discord_link.setStyleSheet("QLabel { background-color: transparent; } QLabel a:hover { text-decoration: underline; }")
         content_layout.addWidget(discord_link)
         
@@ -145,7 +145,7 @@ class AboutDialog(ThemedDialogMixin, QDialog):
         
         # Packages section title
         packages_title = QLabel("Emoji Packages & Credits")
-        packages_title.setFont(QFont("Segoe UI", 12, QFont.Bold))
+        packages_title.setFont(FontManager.get_font(12, QFont.Bold))
         packages_title.setStyleSheet(f"color: {link_color}; margin-top: 10px; margin-bottom: 10px;")
         content_layout.addWidget(packages_title)
         
@@ -196,12 +196,18 @@ class AboutDialog(ThemedDialogMixin, QDialog):
             ("Mono Contrast SVG Icon", [
                 ("Source page", "https://freesvg.org/mono-contrast"),
                 ("License", "Public Domain")
+            ]),
+            ("Refresh SVG Icon", [
+                ("Source page", "https://commons.wikimedia.org/wiki/File:Refresh.svg"),
+                ("Icons8 page", "https://icons8.com/icon/14296/refresh"),
+                ("Author", "Icons8 LLC"),
+                ("License", "Creative Commons Attribution-Share Alike 4.0 International (CC BY-SA 4.0)")
             ])
         ]
         
         for package_name, links in packages:
             package_label = QLabel(package_name)
-            package_label.setFont(QFont("Segoe UI", 10, QFont.Bold))
+            package_label.setFont(FontManager.get_font(10, QFont.Bold))
             content_layout.addWidget(package_label)
             
             for link_text, link_url in links:
@@ -213,14 +219,14 @@ class AboutDialog(ThemedDialogMixin, QDialog):
                     
                     # Text label
                     text_label = QLabel(f"{link_text}:")
-                    text_label.setFont(QFont("Segoe UI", 10))
+                    text_label.setFont(FontManager.get_font(10))
                     link_layout.addWidget(text_label)
                     
                     # URL link
                     url_link = QLabel(f'<a href="{link_url}" style="color: {link_color}; text-decoration: none;">{link_url}</a>')
                     url_link.setOpenExternalLinks(True)
                     url_link.setTextFormat(Qt.RichText)
-                    url_link.setFont(QFont("Segoe UI", 10))
+                    url_link.setFont(FontManager.get_font(10))
                     url_link.setStyleSheet("QLabel { background-color: transparent; } QLabel a:hover { text-decoration: underline; }")
                     link_layout.addWidget(url_link)
                     link_layout.addStretch()
@@ -230,7 +236,7 @@ class AboutDialog(ThemedDialogMixin, QDialog):
                     content_layout.addWidget(link_widget)
                 else:
                     link_label = QLabel(f"{link_text}: {link_url}")
-                    link_label.setFont(QFont("Segoe UI", 10))
+                    link_label.setFont(FontManager.get_font(10))
                     link_label.setWordWrap(True)
                     link_label.setIndent(20)
                     content_layout.addWidget(link_label)
@@ -244,16 +250,11 @@ class AboutDialog(ThemedDialogMixin, QDialog):
         button_layout = QHBoxLayout()
         button_layout.addStretch()
         
-        
-        button_layout.addSpacing(20)  # Add some spacing between buttons
-        
         # Add OK button
         ok_button = QPushButton("OK")
         ok_button.setFixedSize(100, 30)
         ok_button.clicked.connect(self.accept)
         button_layout.addWidget(ok_button)
-        
-        button_layout.addStretch()
         layout.addLayout(button_layout)
         
         self.setLayout(layout)

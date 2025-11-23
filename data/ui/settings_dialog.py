@@ -10,20 +10,19 @@ Allows users to configure which settings should persist between sessions.
 
 import sys
 import os
-import subprocess
-import platform
 from PyQt5.QtWidgets import (QDialog, QVBoxLayout, QHBoxLayout, QPushButton, 
-                             QCheckBox, QLabel, QApplication, QComboBox, QStyle, QStyleOptionButton, QFrame)
+                             QCheckBox, QLabel, QApplication, QComboBox, QStyle, QStyleOptionButton, QFrame, 
+                             QScrollArea, QWidget)
 from PyQt5.QtCore import Qt, QRect
 from PyQt5.QtGui import QFont, QIcon, QColor, QPainter, QPen
-from managers import ThemeManager, PathManager
+from managers import ThemeManager, PathManager, FontManager
 from ui.base_dialog import ThemedColorDialog, ThemedDialogMixin
 
 
 class CheckBoxWithCheckmark(QCheckBox):
     """Custom QCheckBox that draws a visible checkmark when checked with adaptive color"""
     
-    def __init__(self, text, theme, background_color='#5555ff', parent=None):
+    def __init__(self, text, theme, background_color='#00557f', parent=None):
         super().__init__(text, parent)
         self.current_theme = theme
         self.background_color = background_color
@@ -103,7 +102,7 @@ class SettingsDialog(ThemedDialogMixin, QDialog):
             Qt.MSWindowsFixedSizeDialogHint
         )
         
-        self.setFixedSize(900, 620)
+        self.setFixedSize(900, 560)
         
         # Set window icon
         icon_path = self.path_manager.get_misc_file("Kitty-Head.svg")
@@ -117,7 +116,7 @@ class SettingsDialog(ThemedDialogMixin, QDialog):
         self.initial_theme = self.current_theme  # Store initial theme
         
         # Get custom color for category/subcategory and initialize as instance variable
-        self.category_subcategory_color = '#5555ff'
+        self.category_subcategory_color = '#00557f'
         if hasattr(self.parent_window, 'category_subcategory_color'):
             self.category_subcategory_color = self.parent_window.category_subcategory_color
         
@@ -132,6 +131,17 @@ class SettingsDialog(ThemedDialogMixin, QDialog):
         main_layout.setSpacing(5)
         self.setLayout(main_layout)
         
+        # Create scroll area for content
+        scroll_area = QScrollArea()
+        scroll_area.setWidgetResizable(True)
+        scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        
+        # Create content widget
+        content_widget = QWidget()
+        content_layout = QVBoxLayout(content_widget)
+        content_layout.setContentsMargins(10, 10, 10, 10)
+        content_layout.setSpacing(5)
+        
         # Create horizontal layout for two columns
         columns_layout = QHBoxLayout()
         columns_layout.setSpacing(15)
@@ -143,14 +153,14 @@ class SettingsDialog(ThemedDialogMixin, QDialog):
         # Title label
         title_label = QLabel("Choose which settings should stay saved when you restart PurrMoji:")
         title_label.setWordWrap(True)
-        title_label.setFont(QFont("Segoe UI", 9))
+        title_label.setFont(FontManager.get_font(9))
         title_label.setMinimumHeight(60)
         title_label.setStyleSheet(ThemeManager.get_settings_label_style(self.current_theme))
         left_column.addWidget(title_label)
         
         # Save Preferences section label
         save_preferences_label = QLabel("Save Preferences:")
-        save_preferences_label.setFont(QFont("Segoe UI", 9, QFont.Bold))
+        save_preferences_label.setFont(FontManager.get_font(9, QFont.Bold))
         save_preferences_label.setStyleSheet("padding: 5px 10px;")
         left_column.addWidget(save_preferences_label)
         
@@ -173,7 +183,7 @@ class SettingsDialog(ThemedDialogMixin, QDialog):
         
         for key, label_text, default_checked in checkbox_data:
             checkbox = CheckBoxWithCheckmark(label_text, self.current_theme, self.category_subcategory_color)
-            checkbox.setFont(QFont("Segoe UI", 9))
+            checkbox.setFont(FontManager.get_font(9))
             checkbox.setStyleSheet("margin-left: 30px;")
             # Check if parent has save_preferences, otherwise use default
             if hasattr(self.parent_window, 'save_preferences'):
@@ -190,7 +200,7 @@ class SettingsDialog(ThemedDialogMixin, QDialog):
                 light_layout.setSpacing(5)
                 
                 self.background_color_light_checkbox = CheckBoxWithCheckmark("for the Light theme", self.current_theme, self.category_subcategory_color)
-                self.background_color_light_checkbox.setFont(QFont("Segoe UI", 9))
+                self.background_color_light_checkbox.setFont(FontManager.get_font(9))
                 self.background_color_light_checkbox.setStyleSheet("margin-left: 60px;")  # More indented
                 if hasattr(self.parent_window, 'save_preferences'):
                     self.background_color_light_checkbox.setChecked(
@@ -213,7 +223,7 @@ class SettingsDialog(ThemedDialogMixin, QDialog):
                 # Reset button for Light theme background color
                 self.bg_color_light_reset_button = QPushButton("↩")
                 self.bg_color_light_reset_button.setFixedSize(30, 25)
-                self.bg_color_light_reset_button.setFont(QFont("Segoe UI", 12))
+                self.bg_color_light_reset_button.setFont(FontManager.get_font(12))
                 self.bg_color_light_reset_button.setToolTip("Reset to default color (#ffffff)")
                 self.bg_color_light_reset_button.clicked.connect(self.reset_bg_color_light)
                 light_layout.addWidget(self.bg_color_light_reset_button)
@@ -225,7 +235,7 @@ class SettingsDialog(ThemedDialogMixin, QDialog):
                 medium_layout.setSpacing(5)
                 
                 self.background_color_medium_checkbox = CheckBoxWithCheckmark("for the Medium theme", self.current_theme, self.category_subcategory_color)
-                self.background_color_medium_checkbox.setFont(QFont("Segoe UI", 9))
+                self.background_color_medium_checkbox.setFont(FontManager.get_font(9))
                 self.background_color_medium_checkbox.setStyleSheet("margin-left: 60px;")  # More indented
                 if hasattr(self.parent_window, 'save_preferences'):
                     self.background_color_medium_checkbox.setChecked(
@@ -248,7 +258,7 @@ class SettingsDialog(ThemedDialogMixin, QDialog):
                 # Reset button for Medium theme background color
                 self.bg_color_medium_reset_button = QPushButton("↩")
                 self.bg_color_medium_reset_button.setFixedSize(30, 25)
-                self.bg_color_medium_reset_button.setFont(QFont("Segoe UI", 12))
+                self.bg_color_medium_reset_button.setFont(FontManager.get_font(12))
                 self.bg_color_medium_reset_button.setToolTip("Reset to default color (#4b4b4b)")
                 self.bg_color_medium_reset_button.clicked.connect(self.reset_bg_color_medium)
                 medium_layout.addWidget(self.bg_color_medium_reset_button)
@@ -260,7 +270,7 @@ class SettingsDialog(ThemedDialogMixin, QDialog):
                 dark_layout.setSpacing(5)
                 
                 self.background_color_dark_checkbox = CheckBoxWithCheckmark("for the Dark theme", self.current_theme, self.category_subcategory_color)
-                self.background_color_dark_checkbox.setFont(QFont("Segoe UI", 9))
+                self.background_color_dark_checkbox.setFont(FontManager.get_font(9))
                 self.background_color_dark_checkbox.setStyleSheet("margin-left: 60px;")  # More indented
                 if hasattr(self.parent_window, 'save_preferences'):
                     self.background_color_dark_checkbox.setChecked(
@@ -283,7 +293,7 @@ class SettingsDialog(ThemedDialogMixin, QDialog):
                 # Reset button for Dark theme background color
                 self.bg_color_dark_reset_button = QPushButton("↩")
                 self.bg_color_dark_reset_button.setFixedSize(30, 25)
-                self.bg_color_dark_reset_button.setFont(QFont("Segoe UI", 12))
+                self.bg_color_dark_reset_button.setFont(FontManager.get_font(12))
                 self.bg_color_dark_reset_button.setToolTip("Reset to default color (#312829)")
                 self.bg_color_dark_reset_button.clicked.connect(self.reset_bg_color_dark)
                 dark_layout.addWidget(self.bg_color_dark_reset_button)
@@ -309,9 +319,6 @@ class SettingsDialog(ThemedDialogMixin, QDialog):
                 # Update initial state of sub-checkboxes based on main checkbox
                 self.update_background_sub_checkboxes_state()
         
-        # Add stretch at the end of left column
-        left_column.addStretch()
-        
         # Add left column to columns layout
         columns_layout.addLayout(left_column)
         
@@ -329,7 +336,7 @@ class SettingsDialog(ThemedDialogMixin, QDialog):
         
         # Theme selection section
         theme_section_label = QLabel("Theme:")
-        theme_section_label.setFont(QFont("Segoe UI", 9, QFont.Bold))
+        theme_section_label.setFont(FontManager.get_font(9, QFont.Bold))
         theme_section_label.setStyleSheet("padding: 5px 10px;")
         right_column.addWidget(theme_section_label)
         
@@ -340,7 +347,7 @@ class SettingsDialog(ThemedDialogMixin, QDialog):
         theme_layout.setSpacing(5)
         
         theme_label = QLabel("Choose a theme:")
-        theme_label.setFont(QFont("Segoe UI", 9))
+        theme_label.setFont(FontManager.get_font(9))
         theme_label.setStyleSheet("margin-left: 30px;")
         theme_layout.addWidget(theme_label)
         
@@ -350,7 +357,7 @@ class SettingsDialog(ThemedDialogMixin, QDialog):
         self.theme_combo.addItems(ThemeManager.AVAILABLE_THEMES)
         self.theme_combo.setFixedSize(150, 30)
         # Set same font as other dropdowns in main interface
-        theme_combo_font = QFont("Segoe UI", 9)
+        theme_combo_font = FontManager.get_font(9)
         self.theme_combo.setFont(theme_combo_font)
         self.theme_combo.setCurrentText(self.current_theme)
         # Don't apply theme immediately - only on OK button click
@@ -362,7 +369,7 @@ class SettingsDialog(ThemedDialogMixin, QDialog):
         
         # Default Recent & Favorites tab section
         default_tab_section_label = QLabel("Default Tab for Recent & Favorites:")
-        default_tab_section_label.setFont(QFont("Segoe UI", 9, QFont.Bold))
+        default_tab_section_label.setFont(FontManager.get_font(9, QFont.Bold))
         default_tab_section_label.setStyleSheet("padding: 5px 10px;")
         right_column.addWidget(default_tab_section_label)
         
@@ -370,7 +377,7 @@ class SettingsDialog(ThemedDialogMixin, QDialog):
         
         # Checkbox for using last used tab
         self.use_last_used_tab_checkbox = CheckBoxWithCheckmark("Display the last used tab", self.current_theme, self.category_subcategory_color)
-        self.use_last_used_tab_checkbox.setFont(QFont("Segoe UI", 9))
+        self.use_last_used_tab_checkbox.setFont(FontManager.get_font(9))
         self.use_last_used_tab_checkbox.setStyleSheet("margin-left: 30px;")
         if hasattr(self.parent_window, 'data_manager'):
             self.use_last_used_tab_checkbox.setChecked(self.parent_window.data_manager.use_last_used_tab)
@@ -386,7 +393,7 @@ class SettingsDialog(ThemedDialogMixin, QDialog):
         default_tab_layout.setSpacing(5)
         
         self.default_tab_label = QLabel("Or always show this tab:")
-        self.default_tab_label.setFont(QFont("Segoe UI", 9))
+        self.default_tab_label.setFont(FontManager.get_font(9))
         self.default_tab_label.setStyleSheet("margin-left: 30px;")
         default_tab_layout.addWidget(self.default_tab_label)
         
@@ -396,7 +403,7 @@ class SettingsDialog(ThemedDialogMixin, QDialog):
         self.default_tab_combo.addItems(["Recent", "Favorites", "Frequently used"])
         self.default_tab_combo.setFixedSize(150, 30)
         # Set same font as other dropdowns in main interface
-        default_tab_combo_font = QFont("Segoe UI", 9)
+        default_tab_combo_font = FontManager.get_font(9)
         self.default_tab_combo.setFont(default_tab_combo_font)
         
         # Set current value from parent window
@@ -424,7 +431,7 @@ class SettingsDialog(ThemedDialogMixin, QDialog):
         
         # Color customization section
         color_section_label = QLabel("Color Customization:")
-        color_section_label.setFont(QFont("Segoe UI", 9, QFont.Bold))
+        color_section_label.setFont(FontManager.get_font(9, QFont.Bold))
         color_section_label.setStyleSheet("padding: 5px 10px;")
         right_column.addWidget(color_section_label)
         
@@ -435,7 +442,7 @@ class SettingsDialog(ThemedDialogMixin, QDialog):
         emoji_selection_layout.setSpacing(5)
         
         emoji_selection_label = QLabel("Custom color for emoji selection:")
-        emoji_selection_label.setFont(QFont("Segoe UI", 9))
+        emoji_selection_label.setFont(FontManager.get_font(9))
         emoji_selection_label.setStyleSheet("margin-left: 30px;")
         emoji_selection_layout.addWidget(emoji_selection_label)
         
@@ -449,7 +456,7 @@ class SettingsDialog(ThemedDialogMixin, QDialog):
         # Reset button for emoji selection color
         self.emoji_selection_reset_button = QPushButton("↩")
         self.emoji_selection_reset_button.setFixedSize(30, 25)
-        self.emoji_selection_reset_button.setFont(QFont("Segoe UI", 12))
+        self.emoji_selection_reset_button.setFont(FontManager.get_font(12))
         self.emoji_selection_reset_button.setToolTip("Reset to default color (#3699e7)")
         self.emoji_selection_reset_button.clicked.connect(self.reset_emoji_selection_color)
         emoji_selection_layout.addWidget(self.emoji_selection_reset_button)
@@ -463,7 +470,7 @@ class SettingsDialog(ThemedDialogMixin, QDialog):
         category_layout.setSpacing(5)
         
         category_label = QLabel("Background color for category buttons, sub-category tabs, active radio buttons, checkboxes in the Settings window, drop-down menus:")
-        category_label.setFont(QFont("Segoe UI", 9))
+        category_label.setFont(FontManager.get_font(9))
         category_label.setWordWrap(True)
         category_label.setStyleSheet("margin-left: 30px;")
         category_label.setMaximumWidth(500)
@@ -479,8 +486,8 @@ class SettingsDialog(ThemedDialogMixin, QDialog):
         # Reset button for category/subcategory color
         self.category_subcategory_reset_button = QPushButton("↩")
         self.category_subcategory_reset_button.setFixedSize(30, 25)
-        self.category_subcategory_reset_button.setFont(QFont("Segoe UI", 12))
-        self.category_subcategory_reset_button.setToolTip("Reset to default color (#5555ff)")
+        self.category_subcategory_reset_button.setFont(FontManager.get_font(12))
+        self.category_subcategory_reset_button.setToolTip("Reset to default color (#00557f)")
         self.category_subcategory_reset_button.clicked.connect(self.reset_category_subcategory_color)
         category_layout.addWidget(self.category_subcategory_reset_button)
         
@@ -497,7 +504,7 @@ class SettingsDialog(ThemedDialogMixin, QDialog):
         
         # Extracted packages folder section
         packages_folder_section_label = QLabel("Extracted packages folder:")
-        packages_folder_section_label.setFont(QFont("Segoe UI", 9, QFont.Bold))
+        packages_folder_section_label.setFont(FontManager.get_font(9, QFont.Bold))
         packages_folder_section_label.setStyleSheet("padding: 5px 10px;")
         right_column.addWidget(packages_folder_section_label)
         
@@ -508,7 +515,7 @@ class SettingsDialog(ThemedDialogMixin, QDialog):
         open_packages_folder_layout.setSpacing(5)
         
         open_packages_folder_label = QLabel("Open the folder where emoji packages are extracted:")
-        open_packages_folder_label.setFont(QFont("Segoe UI", 9))
+        open_packages_folder_label.setFont(FontManager.get_font(9))
         open_packages_folder_label.setWordWrap(True)
         open_packages_folder_label.setStyleSheet("margin-left: 30px;")
         open_packages_folder_label.setMaximumWidth(500)
@@ -518,23 +525,24 @@ class SettingsDialog(ThemedDialogMixin, QDialog):
         
         self.open_packages_folder_button = QPushButton("Open folder")
         self.open_packages_folder_button.setFixedSize(110, 30)
-        self.open_packages_folder_button.setFont(QFont("Segoe UI", 9))
+        self.open_packages_folder_button.setFont(FontManager.get_font(9))
         self.open_packages_folder_button.setToolTip("Open extracted packages folder in file explorer")
         self.open_packages_folder_button.clicked.connect(self.open_packages_folder)
         open_packages_folder_layout.addWidget(self.open_packages_folder_button)
         
         right_column.addLayout(open_packages_folder_layout)
         
-        # Add stretch at the end of right column
-        right_column.addStretch()
-        
         # Add right column to columns layout
         columns_layout.addLayout(right_column)
         
-        # Add columns layout to main layout
-        main_layout.addLayout(columns_layout)
+        # Add columns layout to content layout
+        content_layout.addLayout(columns_layout)
         
-        main_layout.addStretch()
+        # Set the content widget in the scroll area
+        scroll_area.setWidget(content_widget)
+        
+        # Add scroll area to main layout
+        main_layout.addWidget(scroll_area)
         
         # Buttons
         button_layout = QHBoxLayout()
@@ -760,7 +768,7 @@ class SettingsDialog(ThemedDialogMixin, QDialog):
     
     def reset_category_subcategory_color(self):
         """Reset category/subcategory color to default"""
-        self.category_subcategory_color = '#5555ff'
+        self.category_subcategory_color = '#00557f'
         self.update_color_button_styles()
         self.update_checkboxes_color()
         # Reapply dialog stylesheet with default color
@@ -883,20 +891,6 @@ class SettingsDialog(ThemedDialogMixin, QDialog):
     
     def open_packages_folder(self):
         """Open the extracted packages folder in file explorer"""
-        try:
-            packages_dir = self.path_manager.get_user_packages_dir()
-            
-            # Ensure the directory exists
-            os.makedirs(packages_dir, exist_ok=True)
-            
-            # Open the folder in the appropriate file explorer
-            system = platform.system()
-            if system == "Windows":
-                os.startfile(packages_dir)
-            elif system == "Darwin":  # macOS
-                subprocess.run(["open", packages_dir])
-            else:  # Linux and others
-                subprocess.run(["xdg-open", packages_dir])
-        except Exception as e:
-            print(f"[ERROR] Failed to open packages folder: {e}", file=sys.stderr)
+        packages_dir = self.path_manager.get_user_packages_dir()
+        self.path_manager.open_folder_in_explorer(packages_dir)
 

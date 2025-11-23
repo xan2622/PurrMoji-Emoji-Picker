@@ -127,7 +127,7 @@ def main():
     
     app = QApplication(sys.argv)
     app.setApplicationName("PurrMoji Emoji Picker")
-    app.setApplicationVersion("1.0")
+    app.setApplicationVersion("1.1.0")
     
     # Check and extract packages if needed (first launch)
     if not check_and_extract_packages(app):

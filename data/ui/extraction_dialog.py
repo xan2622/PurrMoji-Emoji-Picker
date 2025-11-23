@@ -9,8 +9,6 @@ Extraction Dialog - Shows progress when extracting emoji packages
 
 import sys
 import os
-import subprocess
-import platform
 import time
 
 from PyQt5.QtWidgets import (
@@ -257,21 +255,9 @@ class ExtractionDialog(QDialog):
         """Open the folder where packages are extracted"""
         packages_dir = self.extractor.get_user_packages_dir()
         
-        # Ensure directory exists
-        os.makedirs(packages_dir, exist_ok=True)
-        
-        # Open folder in file explorer based on OS
-        system = platform.system()
-        
-        try:
-            if system == "Windows":
-                os.startfile(packages_dir)
-            elif system == "Darwin":  # macOS
-                subprocess.run(["open", packages_dir])
-            else:  # Linux and others
-                subprocess.run(["xdg-open", packages_dir])
-        except Exception as e:
-            print(f"[ERROR] Failed to open packages folder: {e}", file=sys.stderr)
+        # Open folder using PathManager's cross-platform method
+        from data.managers.path_manager import PathManager
+        PathManager.open_folder_in_explorer(packages_dir)
     
     def closeEvent(self, event):
         """Handle dialog close event with confirmation if extraction is running"""

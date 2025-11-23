@@ -415,13 +415,13 @@ class ThemeManager:
                     margin: 0px;
                 }}
                 QScrollBar::handle:vertical {{
-                    background-color: {dc.BORDER_HOVER};
+                    background-color: {dc.BG_SECONDARY};
                     min-height: 20px;
                     border-radius: 6px;
                     margin: 2px;
                 }}
                 QScrollBar::handle:vertical:hover {{
-                    background-color: #606060;
+                    background-color: {dc.BG_HOVER};
                 }}
                 QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {{
                     height: 0px;
@@ -482,13 +482,13 @@ class ThemeManager:
                     margin: 0px;
                 }}
                 QScrollBar::handle:vertical {{
-                    background-color: {lc.BORDER_HOVER};
+                    background-color: {lc.BORDER_PRIMARY};
                     min-height: 20px;
                     border-radius: 6px;
                     margin: 2px;
                 }}
                 QScrollBar::handle:vertical:hover {{
-                    background-color: #888888;
+                    background-color: {lc.BORDER_HOVER};
                 }}
                 QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {{
                     height: 0px;
@@ -727,7 +727,7 @@ class ThemeManager:
                 border-radius: 4px;
                 padding: 5px;
                 min-height: 20px;
-                height: 30px;
+                height: 20px;
             }}
             QLineEdit:hover {{
                 border: 1px solid {dc.BORDER_HOVER};
@@ -748,7 +748,7 @@ class ThemeManager:
             str: Stylesheet string for QLineEdit (size input field)
         
         Note:
-            Same styling as search bar but with reduced height (15px instead of 30px)
+            Same styling as search bar but with reduced height
             All themes use consistent styling with themed borders, padding, and border-radius
             Colors are theme-specific to maintain visual consistency
         """
@@ -759,9 +759,9 @@ class ThemeManager:
                 color: {dc.TEXT_PRIMARY};
                 border: 1px solid {dc.BORDER_PRIMARY};
                 border-radius: 4px;
-                padding: 5px;
-                min-height: 5px;
-                height: 15px;
+                padding: 1px;
+                min-height: 20px;
+                height: 20px;
             }}
             QLineEdit:hover {{
                 border: 1px solid {dc.BORDER_HOVER};

@@ -32,7 +32,7 @@ from PyQt5.QtSvg import QSvgRenderer
 # Import managers for modular architecture
 from managers import (
     PathManager, DataManager, CacheManager, EmojiManager, PackageManager,
-    PackageInitializer, ThemeManager
+    PackageInitializer, ThemeManager, FontManager
 )
 
 # Import UI components
@@ -141,9 +141,6 @@ class EmojiPicker(QMainWindow):
         # Load data from DataManager
         self.data_manager.load_data()
         
-        # Check system font availability and filter unavailable packages
-        self.filter_unavailable_system_fonts()
-        
         # Keep reference to emoji_data_file for backward compatibility
         self.emoji_data_file = self.data_manager.data_file
         
@@ -153,6 +150,10 @@ class EmojiPicker(QMainWindow):
             self.current_emoji_package = self.data_manager.preferred_emoji_package
         else:
             self.current_emoji_package = "EmojiTwo"  # Default package
+        
+        # Check system font availability and filter unavailable packages
+        # Note: This must be called AFTER current_emoji_package is initialized
+        self.filter_unavailable_system_fonts()
         
         # Default to EmojiTwo color 72px PNG
         self.emoji_folder = self.path_manager.get_path("emojitwo_color_72_png")
@@ -205,7 +206,7 @@ class EmojiPicker(QMainWindow):
         if self.data_manager.get_preference('category_subcategory_color'):
             self.category_subcategory_color = self.data_manager.category_subcategory_color
         else:
-            self.category_subcategory_color = '#5555ff'  # Default blue
+            self.category_subcategory_color = '#00557f'  # Default blue
         
         # Store current theme
         self.current_theme = self.data_manager.theme
@@ -530,7 +531,9 @@ class EmojiPicker(QMainWindow):
             palette = self.search_edit.palette()
             if theme == ThemeManager.THEME_LIGHT:
                 palette.setColor(QPalette.PlaceholderText, QColor("#999999"))
-            else:  # Medium or Dark
+            elif theme == ThemeManager.THEME_MEDIUM:
+                palette.setColor(QPalette.PlaceholderText, QColor("#adadad"))
+            else:  # Dark
                 palette.setColor(QPalette.PlaceholderText, QColor("#888888"))
             self.search_edit.setPalette(palette)
         
@@ -595,8 +598,22 @@ class EmojiPicker(QMainWindow):
             
             # Invert colors for Dark and Medium themes (black -> white)
             if self.current_theme in [ThemeManager.THEME_DARK, ThemeManager.THEME_MEDIUM]:
+                # Replace explicit black fills
                 svg_content = svg_content.replace('fill: #000000', 'fill: #ffffff')
                 svg_content = svg_content.replace('fill:#000000', 'fill:#ffffff')
+                svg_content = svg_content.replace('fill="#000000"', 'fill="#ffffff"')
+                svg_content = svg_content.replace("fill='#000000'", "fill='#ffffff'")
+                svg_content = svg_content.replace('fill: #000', 'fill: #fff')
+                svg_content = svg_content.replace('fill:#000', 'fill:#fff')
+                svg_content = svg_content.replace('fill="#000"', 'fill="#fff"')
+                svg_content = svg_content.replace("fill='#000'", "fill='#fff'")
+                svg_content = svg_content.replace('fill: black', 'fill: white')
+                svg_content = svg_content.replace('fill:black', 'fill:white')
+                svg_content = svg_content.replace('fill="black"', 'fill="white"')
+                svg_content = svg_content.replace("fill='black'", "fill='white'")
+                # For SVG with empty style or no fill (default black), add white fill
+                svg_content = svg_content.replace('style=" "', 'style="fill: #ffffff"')
+                svg_content = svg_content.replace("style=' '", "style='fill: #ffffff'")
             
             svg_bytes = svg_content.encode('utf-8')
             svg_renderer = QSvgRenderer(svg_bytes)
@@ -633,6 +650,14 @@ class EmojiPicker(QMainWindow):
                 if icon:
                     btn.setIcon(icon)
                     btn.setIconSize(QSize(32, 32))
+        
+        # Update Refresh button icon for Custom folder (invert colors for Dark and Medium themes)
+        if hasattr(self, 'refresh_custom_button'):
+            refresh_icon_path = self.path_manager.get_misc_file("Refresh.svg")
+            refresh_icon = self.load_svg_icon_with_theme(refresh_icon_path, 20)
+            if refresh_icon:
+                self.refresh_custom_button.setIcon(refresh_icon)
+                self.refresh_custom_button.setIconSize(QSize(20, 20))
         
         # Update emoji-based category icons (for Black mode + Dark theme automatic inversion)
         # Only regenerate if we're in Black mode, as Color mode doesn't need theme-based inversion
@@ -938,7 +963,9 @@ class EmojiPicker(QMainWindow):
                 btn.setText(emoji)
                 # Calculate font size proportional to emoji_size (16pt for 48px = 0.333 ratio)
                 font_size = max(8, int(self.emoji_size * 0.333))
-                emoji_font = QFont("Segoe UI Emoji", font_size)
+                # Use Noto Color Emoji for Kaomoji package (cross-platform compatibility)
+                font_name = self.get_google_noto_ttf_font_name() if self.current_emoji_package == "Kaomoji" else "Segoe UI Emoji"
+                emoji_font = QFont(font_name, font_size)
                 btn.setFont(emoji_font)
         
         # Apply appropriate stylesheet based on selection state
@@ -1177,7 +1204,9 @@ class EmojiPicker(QMainWindow):
         else:
             # Fallback to text if image not found
             button.setText(variation_emoji)
-            emoji_font = QFont("Segoe UI Emoji", 16)
+            # Use Noto Color Emoji for Kaomoji package (cross-platform compatibility)
+            font_name = self.get_google_noto_ttf_font_name() if self.current_emoji_package == "Kaomoji" else "Segoe UI Emoji"
+            emoji_font = QFont(font_name, 16)
             button.setFont(emoji_font)
         
         # Update the button's click handler to use the variation
@@ -1255,6 +1284,10 @@ class EmojiPicker(QMainWindow):
             elif self.current_emoji_package == "Noto":
                 # Noto: Use Skia for both variants for consistency and to avoid Qt font conflicts
                 # Windows may have Noto Color Emoji as system font which takes priority over registered Noto Black
+                font_name = self.get_google_noto_ttf_font_name()
+                font_path = self.get_google_noto_ttf_font_path()
+            elif self.current_emoji_package == "Kaomoji":
+                # Kaomoji: Use Noto Color Emoji for real emojis (cross-platform compatibility)
                 font_name = self.get_google_noto_ttf_font_name()
                 font_path = self.get_google_noto_ttf_font_path()
             else:
@@ -1438,8 +1471,17 @@ class EmojiPicker(QMainWindow):
     def find_noto_ttf_path(self, color_mode):
         """Find Noto TTF font file path"""
         package_info = self.emoji_packages.get("Noto", {})
-        font_path = package_info.get("color_font" if color_mode == "color" else "black_font")
-        return font_path if font_path and os.path.exists(font_path) else None
+        font_key = "color_font" if color_mode == "color" else "black_font"
+        font_path = package_info.get(font_key)
+        
+        if font_path:
+            exists = os.path.exists(font_path)
+            if not exists:
+                print(f"[ERROR] Noto font file not found at: {font_path}")
+            return font_path if exists else None
+        else:
+            print(f"[ERROR] No font path configured for Noto {color_mode}")
+            return None
     
     def get_openmoji_ttf_font_name(self):
         """Get the OpenMoji TTF font name (not used for rendering, only for fallback)"""
@@ -1460,6 +1502,7 @@ class EmojiPicker(QMainWindow):
     def render_emoji_with_skia(self, emoji, size, font_path):
         """Render emoji using Skia for all TTF fonts (COLR and monochrome)"""
         if not SKIA_AVAILABLE or not skia_renderer:
+            print(f"[DEBUG] Skia not available for rendering emoji: {emoji}")
             return None
         
         try:
@@ -1489,14 +1532,21 @@ class EmojiPicker(QMainWindow):
                 )
                 if icon:
                     return icon
+                else:
+                    print(f"[ERROR] Failed to render monochrome emoji: {emoji}")
             else:
                 icon = skia_renderer.render_emoji_to_pixmap(emoji, font_path, size)
                 if icon:
                     return icon
+                else:
+                    print(f"[ERROR] Failed to render color emoji: {emoji}")
             
             return None
             
-        except Exception:
+        except Exception as e:
+            print(f"[ERROR] Exception in render_emoji_with_skia for emoji '{emoji}': {e}")
+            import traceback
+            traceback.print_exc()
             return None
     
     def render_image_to_icon(self, image_path, size):
@@ -1642,7 +1692,7 @@ class EmojiPicker(QMainWindow):
             self.setWindowIcon(QIcon(icon_path))
         
         # Set default font for the application
-        default_font = QFont("Segoe UI", 10)
+        default_font = FontManager.get_font(10)
         self.setFont(default_font)
         
         # Create central widget
@@ -1685,7 +1735,8 @@ class EmojiPicker(QMainWindow):
             self.current_emoji_package = ordered_package_names[0] if ordered_package_names else "EmojiTwo"
         
         self.emoji_package_combo.setFixedWidth(200)
-        package_font = QFont("Segoe UI", 9)
+        self.emoji_package_combo.setFixedHeight(30)
+        package_font = FontManager.get_font(9)
         self.emoji_package_combo.setFont(package_font)
         self.emoji_package_combo.setToolTip("Select emoji package/font to display")
         self.emoji_package_combo.currentIndexChanged.connect(self.on_emoji_package_change)
@@ -1695,7 +1746,8 @@ class EmojiPicker(QMainWindow):
         self.variation_filter_combo = QComboBox()
         self.variation_filter_combo.addItems(["All emojis", "Only the ones with variations", "Only the ones without variations"])
         self.variation_filter_combo.setFixedWidth(250)  # Increased from 220 to 250
-        variation_font = QFont("Segoe UI", 9)
+        self.variation_filter_combo.setFixedHeight(30)
+        variation_font = FontManager.get_font(9)
         self.variation_filter_combo.setFont(variation_font)
         self.variation_filter_combo.setToolTip("Filter emojis by variation availability")
         self.variation_filter_combo.currentIndexChanged.connect(self.on_variation_filter_change)
@@ -1704,7 +1756,7 @@ class EmojiPicker(QMainWindow):
         self.search_edit = QLineEdit()
         self.search_edit.setPlaceholderText("Search emojis...")
         # Set smaller font for search
-        search_font = QFont("Segoe UI", 10)
+        search_font = FontManager.get_font(10)
         self.search_edit.setFont(search_font)
         self.search_edit.textChanged.connect(self.on_search_change)
         # Apply theme-specific stylesheet
@@ -1713,7 +1765,9 @@ class EmojiPicker(QMainWindow):
         palette = self.search_edit.palette()
         if self.current_theme == ThemeManager.THEME_LIGHT:
             palette.setColor(QPalette.PlaceholderText, QColor("#999999"))
-        else:  # Medium or Dark
+        elif self.current_theme == ThemeManager.THEME_MEDIUM:
+            palette.setColor(QPalette.PlaceholderText, QColor("#adadad"))
+        else:  # Dark
             palette.setColor(QPalette.PlaceholderText, QColor("#888888"))
         self.search_edit.setPalette(palette)
         search_layout.addWidget(self.search_edit)
@@ -1721,7 +1775,7 @@ class EmojiPicker(QMainWindow):
         # Clear button
         self.clear_button = QPushButton("✕")
         self.clear_button.setFixedSize(25, 30)
-        clear_font = QFont("Segoe UI", 9)
+        clear_font = FontManager.get_font(9)
         self.clear_button.setFont(clear_font)
         self.clear_button.setToolTip("Clear search field")
         self.clear_button.clicked.connect(self.clear_search)
@@ -1739,7 +1793,7 @@ class EmojiPicker(QMainWindow):
         # Color/Black radio buttons
         self.color_radio = QRadioButton("Color")
         self.black_radio = QRadioButton("Black")
-        radio_font = QFont("Segoe UI", 9)
+        radio_font = FontManager.get_font(9)
         self.color_radio.setFont(radio_font)
         self.black_radio.setFont(radio_font)
         self.color_radio.setChecked(True)  # Default to Color
@@ -1747,17 +1801,24 @@ class EmojiPicker(QMainWindow):
         # Open Custom Folder button
         self.open_custom_folder_button = QPushButton("Open custom folder")
         self.open_custom_folder_button.setFont(radio_font)
-        self.open_custom_folder_button.setFixedWidth(160)  # Widened by 10px
+        self.open_custom_folder_button.setFixedSize(160, 30)  # Widened by 10px, fixed height for Linux
         self.open_custom_folder_button.setVisible(False)  # Hidden by default
         self.open_custom_folder_button.clicked.connect(self.open_custom_emoji_folder)
         
         # Refresh custom emojis button
-        self.refresh_custom_button = QPushButton("🔄")
+        self.refresh_custom_button = QPushButton()
         self.refresh_custom_button.setFont(radio_font)
-        self.refresh_custom_button.setFixedWidth(32)  # Small button for emoji icon
+        self.refresh_custom_button.setFixedSize(32, 30)  # Small button for icon, fixed height for Linux
         self.refresh_custom_button.setVisible(False)  # Hidden by default
         self.refresh_custom_button.setToolTip("Refresh custom emojis folder")
         self.refresh_custom_button.clicked.connect(self.refresh_custom_emojis)
+        # Load refresh icon SVG with theme support (inverts colors for Dark and Medium themes)
+        refresh_icon_path = self.path_manager.get_misc_file("Refresh.svg")
+        if os.path.exists(refresh_icon_path):
+            refresh_icon = self.load_svg_icon_with_theme(refresh_icon_path, 20)
+            if refresh_icon:
+                self.refresh_custom_button.setIcon(refresh_icon)
+                self.refresh_custom_button.setIconSize(QSize(20, 20))
         
         # Create button group for Color/Black
         self.color_black_group = QButtonGroup()
@@ -1860,7 +1921,7 @@ class EmojiPicker(QMainWindow):
         # Text label (for emoji name/info)
         self.status_text_label = QLabel("")
         self.status_text_label.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
-        status_font = QFont("Segoe UI", 9)
+        status_font = FontManager.get_font(9)
         self.status_text_label.setFont(status_font)
         self.status_layout.addWidget(self.status_text_label)
         
@@ -1871,7 +1932,7 @@ class EmojiPicker(QMainWindow):
         self.displayed_emoji_source_label.setMinimumWidth(200)
         self.displayed_emoji_source_label.setFixedHeight(30)
         # Set smaller font for source label
-        source_font = QFont("Segoe UI", 9)
+        source_font = FontManager.get_font(9)
         self.displayed_emoji_source_label.setFont(source_font)
         
         # Displayed emojis counter label (always visible)
@@ -1879,12 +1940,12 @@ class EmojiPicker(QMainWindow):
         self.displayed_emojis_counter.setMinimumWidth(150)  # Changed to minimum width instead of fixed
         self.displayed_emojis_counter.setFixedHeight(30)
         # Set smaller font for counter label
-        counter_font = QFont("Segoe UI", 9)
+        counter_font = FontManager.get_font(9)
         self.displayed_emojis_counter.setFont(counter_font)        
         
         # Size controls with input field and +/- buttons
         self.size_label = QLabel("Size:")
-        size_font = QFont("Segoe UI", 9)
+        size_font = FontManager.get_font(9)
         self.size_label.setFont(size_font)
 
         # Contrast button (inverts emoji colors in Black + Dark theme)
@@ -1916,7 +1977,7 @@ class EmojiPicker(QMainWindow):
         # Size input field
         self.size_input = QLineEdit()
         self.size_input.setText(str(self.emoji_size))
-        self.size_input.setFixedSize(60, 15)
+        self.size_input.setFixedSize(60, 20)
         self.size_input.setFont(size_font)
         self.size_input.setAlignment(Qt.AlignCenter)
         self.size_input.setToolTip("Enter emoji size in pixels (from 1 to 618)")
@@ -1932,16 +1993,11 @@ class EmojiPicker(QMainWindow):
         self.increase_size_button.setToolTip("Increase emoji size to nearest predefined size")
         self.increase_size_button.clicked.connect(self.on_increase_size)
         
-        # Separator between background color button and size controls
-        self.separator_label_3 = QLabel('🔹')
-        self.separator_label_3.setFont(counter_font)
-        self.separator_label_3.setFixedHeight(30)
-        
         # Clear recent button (initially hidden)
         self.clear_recent_button = QPushButton("Clear")
         self.clear_recent_button.setFixedSize(60, 30)
         # Set smaller font for clear recent button
-        clear_recent_font = QFont("Segoe UI", 9)
+        clear_recent_font = FontManager.get_font(9)
         self.clear_recent_button.setFont(clear_recent_font)
         self.clear_recent_button.setToolTip("Clear all recent emojis")
         self.clear_recent_button.clicked.connect(self.clear_recent_emojis)
@@ -1950,7 +2006,7 @@ class EmojiPicker(QMainWindow):
         # Add to favorites button (always visible)
         self.add_favorite_button = QPushButton("Add to favorites")
         self.add_favorite_button.setFixedSize(130, 30)
-        favorite_font = QFont("Segoe UI", 9)
+        favorite_font = FontManager.get_font(9)
         self.add_favorite_button.setFont(favorite_font)
         self.add_favorite_button.setToolTip("Add/Remove selected emoji to/from favorites (or use Shift + Click to toggle)")
         self.add_favorite_button.clicked.connect(self.add_to_favorites)
@@ -1958,7 +2014,7 @@ class EmojiPicker(QMainWindow):
         # Copy button (always visible)
         self.copy_button = QPushButton("Copy to clipboard")
         self.copy_button.setFixedSize(140, 30)
-        copy_font = QFont("Segoe UI", 9)
+        copy_font = FontManager.get_font(9)
         self.copy_button.setFont(copy_font)
         self.copy_button.setToolTip("Copy selected emoji to clipboard")
         self.copy_button.clicked.connect(self.copy_selected_emoji)
@@ -1979,7 +2035,7 @@ class EmojiPicker(QMainWindow):
         first_row_layout.addStretch()
         first_row_layout.addWidget(self.contrast_button)
         first_row_layout.addWidget(self.bg_color_button)
-        first_row_layout.addWidget(self.separator_label_3)
+        first_row_layout.addSpacing(10)
         first_row_layout.addWidget(self.size_label)
         first_row_layout.addWidget(self.size_input)
         first_row_layout.addWidget(self.decrease_size_button)
@@ -2157,21 +2213,34 @@ class EmojiPicker(QMainWindow):
                     btn.setIcon(icon)
                     btn.setIconSize(QSize(32, 32))
             else:
-                # Create icon from emoji using system font rendering
+                # Create icon from emoji using Noto Color Emoji font (cross-platform compatibility)
                 emoji_code = category_info["emoji"]
-                emoji_pixmap = QPixmap(32, 32)
-                emoji_pixmap.fill(Qt.transparent)
-                painter = QPainter(emoji_pixmap)
-                painter.setRenderHint(QPainter.Antialiasing)
-                painter.setRenderHint(QPainter.TextAntialiasing)
                 
-                # Use Segoe UI Emoji font with smaller size to prevent clipping
-                emoji_font = QFont("Segoe UI Emoji", 16)
-                painter.setFont(emoji_font)
-                painter.drawText(emoji_pixmap.rect(), Qt.AlignCenter, emoji_code)
-                painter.end()
+                # Get Noto Color Emoji font path and try to render with Skia
+                font_path = self.get_google_noto_ttf_font_path()
+                icon = None
                 
-                icon = QIcon(emoji_pixmap)
+                if SKIA_AVAILABLE and font_path and os.path.exists(font_path):
+                    # Render with Skia for better color emoji support
+                    icon = self.render_emoji_with_skia(emoji_code, 32, font_path)
+                
+                # Fallback to Qt rendering if Skia is not available or failed
+                if not icon:
+                    font_name = self.get_google_noto_ttf_font_name()
+                    emoji_pixmap = QPixmap(32, 32)
+                    emoji_pixmap.fill(Qt.transparent)
+                    painter = QPainter(emoji_pixmap)
+                    painter.setRenderHint(QPainter.Antialiasing)
+                    painter.setRenderHint(QPainter.TextAntialiasing)
+                    
+                    # Use Noto Color Emoji font
+                    emoji_font = QFont(font_name, 16)
+                    painter.setFont(emoji_font)
+                    painter.drawText(emoji_pixmap.rect(), Qt.AlignCenter, emoji_code)
+                    painter.end()
+                    
+                    icon = QIcon(emoji_pixmap)
+                
                 btn.setIcon(icon)
                 btn.setIconSize(QSize(32, 32))
             
@@ -2304,7 +2373,7 @@ class EmojiPicker(QMainWindow):
     def calculate_button_width(self, text):
         """Calculate precise width needed for a button based on actual text rendering"""
         # Create QFontMetrics for the exact font used in subcategory buttons
-        font = QFont("Segoe UI", 9)
+        font = FontManager.get_font(9)
         font_metrics = QFontMetrics(font)
         
         # Get the actual pixel width of the text
@@ -2358,7 +2427,7 @@ class EmojiPicker(QMainWindow):
         self.subcategory_row_layouts.append(row_layout)
         self.subcategory_main_layout.addLayout(row_layout)
         
-        subcategory_font = QFont("Segoe UI", 9)
+        subcategory_font = FontManager.get_font(9)
         
         # Create "Recent" button
         recent_btn = QPushButton("Recent")
@@ -2506,7 +2575,7 @@ class EmojiPicker(QMainWindow):
             self.adjust_grid_height_for_subcategories(0)
             return
         
-        subcategory_font = QFont("Segoe UI", 9)
+        subcategory_font = FontManager.get_font(9)
         
         # Calculate button widths and collect button info
         button_info = []
@@ -2689,7 +2758,7 @@ class EmojiPicker(QMainWindow):
         
         # Create button info for subcategories
         button_info = []
-        subcategory_font = QFont("Segoe UI", 9)
+        subcategory_font = FontManager.get_font(9)
         font_metrics = QFontMetrics(subcategory_font)
         
         for subcat_key, subcat_data in subcategories.items():
@@ -2810,7 +2879,7 @@ class EmojiPicker(QMainWindow):
         
         # Create button info for all categories and subcategories
         button_info = []
-        subcategory_font = QFont("Segoe UI", 9)
+        subcategory_font = FontManager.get_font(9)
         font_metrics = QFontMetrics(subcategory_font)
         
         for category_key, category_data in self.kaomoji_categories.items():
@@ -3496,18 +3565,11 @@ class EmojiPicker(QMainWindow):
     
     def on_emoji_package_change(self, index):
         """Handle emoji package change from dropdown"""
-        package_names = [
-            "EmojiTwo",
-            "Noto",
-            "OpenMoji",
-            "Segoe UI Emoji",
-            "Twemoji",
-            "Kaomoji",
-            "Custom"
-        ]
+        # FIXED: Get package name directly from combo box to avoid index mismatch
+        # when packages are filtered (e.g., Segoe UI Emoji not available on Linux)
+        selected_package = self.emoji_package_combo.itemText(index)
         
-        if 0 <= index < len(package_names):
-            selected_package = package_names[index]
+        if selected_package and selected_package in self.emoji_packages:
             
             # Map display name to internal package name
             self.current_emoji_package = selected_package
@@ -3673,7 +3735,7 @@ class EmojiPicker(QMainWindow):
         
         # Calculate font size proportional to emoji_size (10pt for 48px = 0.208 ratio)
         font_size = max(8, int(self.emoji_size * 0.208))
-        kaomoji_font = QFont("Segoe UI", font_size)
+        kaomoji_font = FontManager.get_font(font_size)
         btn.setFont(kaomoji_font)
         btn.setText(kaomoji_text)
         
@@ -4621,18 +4683,15 @@ class EmojiPicker(QMainWindow):
             self.emoji_scroll_area.setFixedSize(780, expanded_height)
     
     def open_custom_emoji_folder(self):
-        """Open the custom emoji folder in Windows Explorer"""
-        import subprocess
-        import os
-        
+        """Open the custom emoji folder in file explorer"""
         custom_folder = self.emoji_packages.get("Custom", {}).get("folder", "")
         
         try:
             # Ensure the custom folder exists
             os.makedirs(custom_folder, exist_ok=True)
             
-            # Open Windows Explorer with the custom folder
-            subprocess.Popen(f'explorer "{custom_folder}"', shell=True)
+            # Open file explorer using cross-platform method
+            PathManager.open_folder_in_explorer(custom_folder)
         except Exception:
             # Silently fail - the folder opening is not critical
             pass

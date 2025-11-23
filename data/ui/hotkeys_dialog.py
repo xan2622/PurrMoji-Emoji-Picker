@@ -9,10 +9,10 @@ Displays keyboard shortcuts available in the application.
 """
 
 import os
-from PyQt5.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QPushButton, QLabel, QApplication
+from PyQt5.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QPushButton, QLabel, QApplication, QScrollArea, QWidget
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon, QFont, QFontMetrics
-from managers import ThemeManager, PathManager
+from managers import ThemeManager, PathManager, FontManager
 from ui.base_dialog import ThemedDialogMixin
 
 
@@ -22,7 +22,7 @@ class HotkeysDialog(ThemedDialogMixin, QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Hotkeys")
-        self.setFixedSize(650, 385)
+        self.setFixedSize(670, 395)
         
         # Get PathManager from parent or create new instance
         if parent and hasattr(parent, 'path_manager'):
@@ -44,7 +44,7 @@ class HotkeysDialog(ThemedDialogMixin, QDialog):
             self.current_theme = parent.data_manager.theme
         
         # Get custom color for category/subcategory
-        category_subcategory_color = '#5555ff'
+        category_subcategory_color = '#00557f'
         if parent and hasattr(parent, 'category_subcategory_color'):
             category_subcategory_color = parent.category_subcategory_color
         
@@ -62,12 +62,23 @@ class HotkeysDialog(ThemedDialogMixin, QDialog):
         
         layout = QVBoxLayout()
         
+        # Create scroll area for content
+        scroll_area = QScrollArea()
+        scroll_area.setWidgetResizable(True)
+        scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        
+        # Create content widget
+        content_widget = QWidget()
+        content_layout = QVBoxLayout(content_widget)
+        content_layout.setContentsMargins(10, 10, 10, 10)
+        content_layout.setSpacing(10)
+        
         # Title
         title_label = QLabel("Keyboard Shortcuts")
-        title_font = QFont("Segoe UI", 12, QFont.Bold)
+        title_font = FontManager.get_font(12, QFont.Bold)
         title_label.setFont(title_font)
         title_label.setStyleSheet(f"color: {link_color}; margin-bottom: 10px;")
-        layout.addWidget(title_label)
+        content_layout.addWidget(title_label)
         
         # Shortcuts list
         shortcuts = [
@@ -82,7 +93,7 @@ class HotkeysDialog(ThemedDialogMixin, QDialog):
         ]
         
         # Calculate maximum width needed for shortcuts column to align all colons
-        font = QFont("Segoe UI", 10, QFont.Bold)
+        font = FontManager.get_font(10, QFont.Bold)
         font_metrics = QFontMetrics(font)
         max_shortcut_width = 0
         for key_combo, _ in shortcuts:
@@ -99,29 +110,32 @@ class HotkeysDialog(ThemedDialogMixin, QDialog):
             shortcut_layout.setSpacing(0)
             
             key_label = QLabel(f"<b>{key_combo}</b>")
-            key_label.setFont(QFont("Segoe UI", 10, QFont.Bold))
+            key_label.setFont(FontManager.get_font(10, QFont.Bold))
             key_label.setFixedWidth(shortcut_column_width)
             key_label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
             shortcut_layout.addWidget(key_label)
             
             desc_label = QLabel(f" : {description}")  # Extra space after colon
-            desc_label.setFont(QFont("Segoe UI", 10))
+            desc_label.setFont(FontManager.get_font(10))
             shortcut_layout.addWidget(desc_label)
             
             shortcut_layout.addStretch()
             
-            layout.addLayout(shortcut_layout)
+            content_layout.addLayout(shortcut_layout)
         
-        layout.addStretch()
+        # Set the content widget in the scroll area
+        scroll_area.setWidget(content_widget)
+        
+        # Add scroll area to main layout
+        layout.addWidget(scroll_area)
         
         # Add OK button
         button_layout = QHBoxLayout()
+        button_layout.addStretch()
         ok_button = QPushButton("OK")
         ok_button.setFixedSize(80, 30)
         ok_button.clicked.connect(self.accept)
-        button_layout.addStretch()
         button_layout.addWidget(ok_button)
-        button_layout.addStretch()
         layout.addLayout(button_layout)
         
         self.setLayout(layout)

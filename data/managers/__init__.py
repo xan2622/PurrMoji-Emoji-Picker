@@ -16,6 +16,7 @@ from .package_manager import PackageManager
 from .package_initializer import PackageInitializer
 from .theme_manager import ThemeManager
 from .zip_extractor import ZipExtractor
+from .font_manager import FontManager
 
 __all__ = [
     'PathManager',
@@ -25,6 +26,7 @@ __all__ = [
     'PackageManager',
     'PackageInitializer',
     'ThemeManager',
-    'ZipExtractor'
+    'ZipExtractor',
+    'FontManager'
 ]
 

@@ -180,6 +180,7 @@ class SkiaRenderer:
             monochrome_color: RGBA tuple for monochrome rendering (default: black)
         """
         if not self.initialized:
+            print(f"[ERROR] Skia renderer not initialized")
             return None
         
         if not os.path.exists(font_path):
@@ -190,7 +191,7 @@ class SkiaRenderer:
             # Load the font
             typeface = self.skia.Typeface.MakeFromFile(font_path)
             if not typeface:
-                print(f"[ERROR] Failed to load font file: {font_path}")
+                print(f"[ERROR] Failed to load font file (Typeface.MakeFromFile returned None): {font_path}")
                 return None
             
             # Create a font with the desired size (slightly larger for better rendering)
@@ -237,15 +238,31 @@ class SkiaRenderer:
             
             # Get the image from surface and convert to QPixmap
             image = surface.makeImageSnapshot()
+            if not image:
+                print(f"[ERROR] Failed to create image snapshot from surface")
+                return None
+            
             png_data = image.encodeToData()
+            if not png_data:
+                print(f"[ERROR] Failed to encode image to PNG data")
+                return None
+            
             pixmap = self.create_pixmap_from_data(png_data)
             
             if not pixmap:
+                print(f"[ERROR] Failed to create QPixmap from PNG data")
+                return None
+            
+            if pixmap.isNull():
+                print(f"[ERROR] Created QPixmap is null")
                 return None
             
             return QIcon(pixmap)
             
-        except Exception:
+        except Exception as e:
+            print(f"[ERROR] Exception in render_emoji_to_pixmap: {e}")
+            import traceback
+            traceback.print_exc()
             return None
 
 

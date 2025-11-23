@@ -4885,15 +4885,12 @@
     "👃🏽": "Nose"
   },
   "recent": [
-    "🐀",
-    "😅",
-    "👋",
-    "😯",
-    "😒",
-    "👀",
+    "👎",
     "👍",
-    "😕",
-    "😀"
+    "😘",
+    "😀",
+    "🐌",
+    "🥝"
   ],
   "subcategories": {
     "activities": {
@@ -7598,8 +7595,6 @@
     "😢",
     "😡",
     "😒",
-    "🤩",
-    "🤪",
     "👍",
     "👀",
     "😬",
@@ -7630,37 +7625,45 @@
   "emoji_variation_filter": "all",
   "color_black": "color",
   "format_selection": "png",
-  "category_button": "animals-nature",
-  "subcategory_tab": "body-parts",
+  "category_button": "Recent & Favorites",
+  "subcategory_tab": "favorites",
   "emoji_size": 48,
   "package_size": "72",
   "emoji_selection_color": "#3699e7",
-  "category_subcategory_color": "#5555ff",
-  "theme": "Light",
+  "category_subcategory_color": "#00557f",
+  "theme": "Dark",
   "emoji_usage_count": {
-    "😀": 9,
+    "😀": 10,
     "😕": 5,
-    "👍": 5,
+    "👍": 6,
     "👀": 1,
     "😒": 4,
     "😯": 3,
     "👋": 3,
     "😅": 5,
-    "🐀": 1
+    "🐀": 1,
+    "🪀": 1,
+    "🦓": 1,
+    "🫜": 1,
+    "🥝": 1,
+    "🐌": 1,
+    "😘": 2,
+    "👎": 1
   },
   "frequently_used": [
     "😀",
-    "😕",
     "👍",
+    "😕",
     "😅",
     "😒",
     "😯",
-    "👋"
+    "👋",
+    "😘"
   ],
   "background_color_light": "#ffffff",
   "background_color_dark": "#312829",
   "background_color_medium": "#4b4b4b",
   "default_recent_favorites_tab": "favorites",
-  "last_used_recent_favorites_tab": "recent",
+  "last_used_recent_favorites_tab": "favorites",
   "use_last_used_tab": true
 }
