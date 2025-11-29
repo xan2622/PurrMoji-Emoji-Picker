@@ -32,14 +32,16 @@ Since then, the goal of the PurrMoji project has evolved, expanding its support 
 - 12 buttons to switch between emoji categories
 - Up to 3 rows of tabs for sub-categories (depending on the category)
 - An emoji preview with emoji name and unicode code
-- A contrast button to invert emoji colors (useful when viewing black emojis in dark mode)
+- A contrast button to invert emoji colors (useful when viewing black emojis with the Dark theme)
 - A color button to change emoji background color (located next to the "Size" controls)
 - An input field to directly set the emoji size and two - + buttons to decrease or increase emojis size
-- A 'Hotkeys' dialog to give information about the three available hotkeys
+- A 'Hotkeys' dialog to give information about available hotkeys and customize them
 - A 'Settings' dialog to configure which preferences are saved persistently across app restarts
 - "Add to favorites" button, a "Copy to clipboard" button, a "Clear" button in Recent / Favorites
-- Hotkeys: "Double-click" to copy emoji to clipboard, "Shift + Left Click" to add/remove emoji to/from favorites, "Ctrl + Wheel Up/Down" to increase/decrease emoji size in the grid, the "+" key to increase emoji size in the grid, the "-" key to decrease emoji size in the grid, "Page Up" to select the next package, "Page Down" to select the previous package, "T" to cycle through themes (Light > Medium > Dark)
 - Custom folder support: add your own PNG, SVG, or TTF icons and emojis alongside the bundled emoji packages
+- A Global Hotkey to instantly show/hide PurrMoji from anywhere using a customizable shortcut (default: Ctrl+Alt+X)
+- An Auto-Start option to automatically launch PurrMoji when the OS session starts (Windows, Linux, macOS)
+- An option to minimize PurrMoji to the system tray for background operation
 
 ## 💬 Feedback & Community
 
@@ -66,7 +68,7 @@ The extraction takes a few moments and shows a progress bar with the current ope
 - **macOS**: `~/Library/Application Support/PurrMoji/emoji_packages/`
 - **Linux**: `~/.local/share/PurrMoji/emoji_packages/`
 
-The Custom emoji folder and Kaomoji data remain in the application directory and don't require extraction. Segoe UI Emoji also doesn't require extraction as it uses the system TTF font already installed on Windows.
+The Custom emoji folder and Kaomoji data remain in the application directory and don't require extraction. Segoe UI Emoji also doesn't require extraction as it uses the system TTF font already installed on Windows ; these emojis are only available on Windows and won't be shown on Linux/MacOS.
 
 ## ⚖️ Licenses
   

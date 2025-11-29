@@ -13,9 +13,12 @@ from PyQt5.QtCore import Qt, pyqtSignal
 
 
 class DoubleClickButton(QPushButton):
-    """Custom QPushButton that emits signals on double-click and shift+click"""
+    """Custom QPushButton that emits signals on various click types"""
     doubleClicked = pyqtSignal()
     shiftClicked = pyqtSignal()
+    ctrlClicked = pyqtSignal()
+    altClicked = pyqtSignal()
+    singleClicked = pyqtSignal()
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -26,28 +29,50 @@ class DoubleClickButton(QPushButton):
         super().mouseDoubleClickEvent(event)
     
     def mousePressEvent(self, event):
-        """Handle mouse press event to detect Shift+Click"""
-        if event.modifiers() & Qt.ShiftModifier:
+        """Handle mouse press event to detect modifier+Click"""
+        modifiers = event.modifiers()
+        if modifiers & Qt.ShiftModifier:
             self.shiftClicked.emit()
+        elif modifiers & Qt.ControlModifier:
+            self.ctrlClicked.emit()
+        elif modifiers & Qt.AltModifier:
+            self.altClicked.emit()
         super().mousePressEvent(event)
+    
+    def mouseReleaseEvent(self, event):
+        """Handle mouse release for single click without modifiers"""
+        modifiers = event.modifiers()
+        if not (modifiers & (Qt.ShiftModifier | Qt.ControlModifier | Qt.AltModifier)):
+            self.singleClicked.emit()
+        super().mouseReleaseEvent(event)
 
 
 class EmojiScrollArea(QScrollArea):
-    """Custom QScrollArea that intercepts wheel events for Ctrl+Wheel size adjustment"""
-    wheelEventWithCtrl = pyqtSignal(int)  # Signal for wheel delta when Ctrl is pressed
+    """Custom QScrollArea that intercepts wheel events for modifier+Wheel size adjustment"""
+    wheelEventWithCtrl = pyqtSignal(int)
+    wheelEventWithShift = pyqtSignal(int)
+    wheelEventWithAlt = pyqtSignal(int)
+    wheelEventNoModifier = pyqtSignal(int)
     
     def wheelEvent(self, event):
-        """Handle wheel event - prioritize Ctrl+Wheel for size adjustment"""
-        # Check if Ctrl modifier is held
-        if event.modifiers() & Qt.ControlModifier:
-            # Consume the event and emit signal for size adjustment
-            # Positive delta = wheel up = increase size
-            # Negative delta = wheel down = decrease size
-            self.wheelEventWithCtrl.emit(event.angleDelta().y())
+        """Handle wheel event - check for modifier+Wheel for size adjustment"""
+        modifiers = event.modifiers()
+        delta = event.angleDelta().y()
+        
+        if modifiers & Qt.ControlModifier:
+            self.wheelEventWithCtrl.emit(delta)
+            event.accept()
+            return
+        elif modifiers & Qt.ShiftModifier:
+            self.wheelEventWithShift.emit(delta)
+            event.accept()
+            return
+        elif modifiers & Qt.AltModifier:
+            self.wheelEventWithAlt.emit(delta)
             event.accept()
             return
         
-        # If Ctrl is not pressed, allow normal scrolling behavior
+        # No modifier - allow normal scrolling
         super().wheelEvent(event)
 
 

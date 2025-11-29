@@ -221,6 +221,9 @@ class ThemeManager:
                 QLabel {{
                     color: {dc.TEXT_PRIMARY};
                 }}
+                QLabel:disabled {{
+                    color: {dc.TEXT_DISABLED};
+                }}
                 QPushButton {{
                     background-color: {dc.BG_SECONDARY};
                     color: {dc.TEXT_PRIMARY};
@@ -234,6 +237,11 @@ class ThemeManager:
                 }}
                 QPushButton:pressed {{
                     background-color: {dc.BG_PRESSED};
+                }}
+                QPushButton:disabled {{
+                    background-color: {dc.BG_DISABLED};
+                    color: {dc.TEXT_DISABLED};
+                    border: 1px solid {dc.BORDER_DISABLED};
                 }}
                 QCheckBox {{
                     color: {dc.TEXT_PRIMARY};
@@ -293,6 +301,11 @@ class ThemeManager:
                 QLineEdit:focus {{
                     border: 1px solid {dc.ACCENT_PURPLE};
                 }}
+                QLineEdit:disabled {{
+                    background-color: {dc.BG_DISABLED};
+                    color: {dc.TEXT_DISABLED};
+                    border: 1px solid {dc.BORDER_DISABLED};
+                }}
             """
         else:
             # Light theme with custom colors for checkboxes, radio buttons, and dropdown selections
@@ -316,7 +329,7 @@ class ThemeManager:
                 }}
                 QCheckBox::indicator:hover {{
                     border: 2px solid {lc.BORDER_HOVER};
-                    background-color: {lc.BG_SECONDARY};
+                    background-color: {lc.BORDER_PRIMARY};
                 }}
                 QRadioButton::indicator:checked {{
                     background-color: {category_subcategory_color};
@@ -510,7 +523,7 @@ class ThemeManager:
                 }}
                 QRadioButton::indicator:hover:!disabled {{
                     border: 2px solid {lc.BORDER_HOVER};
-                    background-color: {lc.BG_SECONDARY};
+                    background-color: {lc.BG_HOVER};
                 }}
                 QRadioButton::indicator:checked {{
                     width: 8px;

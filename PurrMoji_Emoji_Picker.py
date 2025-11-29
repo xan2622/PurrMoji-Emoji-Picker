@@ -129,13 +129,31 @@ def main():
     app.setApplicationName("PurrMoji Emoji Picker")
     app.setApplicationVersion("1.1.0")
     
+    # Keep app running when last window is closed (for system tray)
+    app.setQuitOnLastWindowClosed(False)
+    
     # Check and extract packages if needed (first launch)
     if not check_and_extract_packages(app):
         sys.exit(1)
     
-    # Create and show main window
+    # Create main window
     window = EmojiPicker()
-    window.show()
+    
+    # Check if should start minimized (e.g., when starting with Windows)
+    start_minimized = window.data_manager.start_minimized and window.data_manager.start_with_windows
+    
+    # Check for --minimized command line argument
+    if '--minimized' in sys.argv or '-m' in sys.argv:
+        start_minimized = True
+    
+    if start_minimized:
+        # Start hidden (will show via hotkey or tray icon)
+        if window.data_manager.minimize_to_tray and hasattr(window, 'tray_icon') and window.tray_icon:
+            window.hide()
+        else:
+            window.showMinimized()
+    else:
+        window.show()
     
     sys.exit(app.exec_())
 

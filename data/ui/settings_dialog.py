@@ -10,6 +10,7 @@ Allows users to configure which settings should persist between sessions.
 
 import sys
 import os
+import platform
 from PyQt5.QtWidgets import (QDialog, QVBoxLayout, QHBoxLayout, QPushButton, 
                              QCheckBox, QLabel, QApplication, QComboBox, QStyle, QStyleOptionButton, QFrame, 
                              QScrollArea, QWidget)
@@ -84,6 +85,13 @@ class CheckBoxWithCheckmark(QCheckBox):
 class SettingsDialog(ThemedDialogMixin, QDialog):
     """Settings dialog to configure which settings should be saved between sessions"""
     
+    # Default color values
+    DEFAULT_BG_COLOR_LIGHT = '#ffffff'
+    DEFAULT_BG_COLOR_MEDIUM = '#4b4b4b'
+    DEFAULT_BG_COLOR_DARK = '#312829'
+    DEFAULT_EMOJI_SELECTION_COLOR = '#3699e7'
+    DEFAULT_CATEGORY_SUBCATEGORY_COLOR = '#00557f'
+    
     def __init__(self, parent=None):
         super().__init__(parent)
         self.parent_window = parent
@@ -102,7 +110,7 @@ class SettingsDialog(ThemedDialogMixin, QDialog):
             Qt.MSWindowsFixedSizeDialogHint
         )
         
-        self.setFixedSize(900, 560)
+        self.setFixedSize(900, 680)
         
         # Set window icon
         icon_path = self.path_manager.get_misc_file("Kitty-Head.svg")
@@ -306,9 +314,9 @@ class SettingsDialog(ThemedDialogMixin, QDialog):
                     self.bg_color_medium = self.parent_window.data_manager.emoji_background_color_medium
                     self.bg_color_dark = self.parent_window.data_manager.emoji_background_color_dark
                 else:
-                    self.bg_color_light = '#ffffff'
-                    self.bg_color_medium = '#4b4b4b'
-                    self.bg_color_dark = '#312829'
+                    self.bg_color_light = self.DEFAULT_BG_COLOR_LIGHT
+                    self.bg_color_medium = self.DEFAULT_BG_COLOR_MEDIUM
+                    self.bg_color_dark = self.DEFAULT_BG_COLOR_DARK
                 
                 # Update button styles
                 self.update_bg_color_button_styles()
@@ -319,61 +327,15 @@ class SettingsDialog(ThemedDialogMixin, QDialog):
                 # Update initial state of sub-checkboxes based on main checkbox
                 self.update_background_sub_checkboxes_state()
         
-        # Add left column to columns layout
-        columns_layout.addLayout(left_column)
-        
-        # VERTICAL SEPARATOR
-        separator = QFrame()
-        separator.setFrameShape(QFrame.VLine)
-        separator.setFrameShadow(QFrame.Sunken)
-        separator.setLineWidth(2)
-        separator.setStyleSheet("QFrame { color: #888888; }")
-        columns_layout.addWidget(separator)
-        
-        # RIGHT COLUMN: Theme, Default Tab, Color Customization
-        right_column = QVBoxLayout()
-        right_column.setSpacing(5)
-        
-        # Theme selection section
-        theme_section_label = QLabel("Theme:")
-        theme_section_label.setFont(FontManager.get_font(9, QFont.Bold))
-        theme_section_label.setStyleSheet("padding: 5px 10px;")
-        right_column.addWidget(theme_section_label)
-        
-        right_column.addSpacing(5)
-        
-        # Theme selection dropdown
-        theme_layout = QHBoxLayout()
-        theme_layout.setSpacing(5)
-        
-        theme_label = QLabel("Choose a theme:")
-        theme_label.setFont(FontManager.get_font(9))
-        theme_label.setStyleSheet("margin-left: 30px;")
-        theme_layout.addWidget(theme_label)
-        
-        theme_layout.addStretch()
-        
-        self.theme_combo = QComboBox()
-        self.theme_combo.addItems(ThemeManager.AVAILABLE_THEMES)
-        self.theme_combo.setFixedSize(150, 30)
-        # Set same font as other dropdowns in main interface
-        theme_combo_font = FontManager.get_font(9)
-        self.theme_combo.setFont(theme_combo_font)
-        self.theme_combo.setCurrentText(self.current_theme)
-        # Don't apply theme immediately - only on OK button click
-        theme_layout.addWidget(self.theme_combo)
-        
-        right_column.addLayout(theme_layout)
-        
-        right_column.addSpacing(10)
-        
         # Default Recent & Favorites tab section
+        left_column.addSpacing(10)
+        
         default_tab_section_label = QLabel("Default Tab for Recent & Favorites:")
         default_tab_section_label.setFont(FontManager.get_font(9, QFont.Bold))
         default_tab_section_label.setStyleSheet("padding: 5px 10px;")
-        right_column.addWidget(default_tab_section_label)
+        left_column.addWidget(default_tab_section_label)
         
-        right_column.addSpacing(5)
+        left_column.addSpacing(5)
         
         # Checkbox for using last used tab
         self.use_last_used_tab_checkbox = CheckBoxWithCheckmark("Display the last used tab", self.current_theme, self.category_subcategory_color)
@@ -384,9 +346,9 @@ class SettingsDialog(ThemedDialogMixin, QDialog):
         else:
             self.use_last_used_tab_checkbox.setChecked(True)
         self.use_last_used_tab_checkbox.stateChanged.connect(self.on_use_last_used_tab_changed)
-        right_column.addWidget(self.use_last_used_tab_checkbox)
+        left_column.addWidget(self.use_last_used_tab_checkbox)
         
-        right_column.addSpacing(5)
+        left_column.addSpacing(5)
         
         # Default tab selection dropdown for Recent & Favorites category
         default_tab_layout = QHBoxLayout()
@@ -422,10 +384,59 @@ class SettingsDialog(ThemedDialogMixin, QDialog):
         
         default_tab_layout.addWidget(self.default_tab_combo)
         
-        right_column.addLayout(default_tab_layout)
+        left_column.addLayout(default_tab_layout)
         
         # Update initial state of default_tab_combo based on use_last_used_tab_checkbox
         self.update_default_tab_combo_state()
+        
+        # Add stretch at the end of left column
+        left_column.addStretch()
+        
+        # Add left column to columns layout
+        columns_layout.addLayout(left_column)
+        
+        # VERTICAL SEPARATOR
+        separator = QFrame()
+        separator.setFrameShape(QFrame.VLine)
+        separator.setFrameShadow(QFrame.Sunken)
+        separator.setLineWidth(2)
+        separator.setStyleSheet("QFrame { color: #888888; }")
+        columns_layout.addWidget(separator)
+        
+        # RIGHT COLUMN: Theme, Color Customization
+        right_column = QVBoxLayout()
+        right_column.setSpacing(5)
+        
+        # Theme selection section
+        theme_section_label = QLabel("Theme:")
+        theme_section_label.setFont(FontManager.get_font(9, QFont.Bold))
+        theme_section_label.setStyleSheet("padding: 5px 10px;")
+        right_column.addWidget(theme_section_label)
+        
+        right_column.addSpacing(5)
+        
+        # Theme selection dropdown
+        theme_layout = QHBoxLayout()
+        theme_layout.setSpacing(5)
+        
+        theme_label = QLabel("Choose a theme:")
+        theme_label.setFont(FontManager.get_font(9))
+        theme_label.setStyleSheet("margin-left: 30px;")
+        theme_layout.addWidget(theme_label)
+        
+        theme_layout.addStretch()
+        
+        self.theme_combo = QComboBox()
+        self.theme_combo.addItems(ThemeManager.AVAILABLE_THEMES)
+        self.theme_combo.setFixedSize(150, 30)
+        # Set same font as other dropdowns in main interface
+        theme_combo_font = FontManager.get_font(9)
+        self.theme_combo.setFont(theme_combo_font)
+        self.theme_combo.setCurrentText(self.current_theme)
+        # Don't apply theme immediately - only on OK button click
+        theme_layout.addWidget(self.theme_combo)
+        
+        right_column.addLayout(theme_layout)
         
         right_column.addSpacing(10)
         
@@ -532,6 +543,58 @@ class SettingsDialog(ThemedDialogMixin, QDialog):
         
         right_column.addLayout(open_packages_folder_layout)
         
+        right_column.addSpacing(10)
+        
+        # Window Behavior section
+        window_behavior_section_label = QLabel("Window Behavior:")
+        window_behavior_section_label.setFont(FontManager.get_font(9, QFont.Bold))
+        window_behavior_section_label.setStyleSheet("padding: 5px 10px;")
+        right_column.addWidget(window_behavior_section_label)
+        
+        right_column.addSpacing(5)
+        
+        # Start with Windows checkbox
+        self.start_with_windows_checkbox = CheckBoxWithCheckmark("Start PurrMoji with OS session", self.current_theme, self.category_subcategory_color)
+        self.start_with_windows_checkbox.setFont(FontManager.get_font(9))
+        self.start_with_windows_checkbox.setStyleSheet("margin-left: 30px;")
+        if hasattr(self.parent_window, 'data_manager'):
+            self.start_with_windows_checkbox.setChecked(self.parent_window.data_manager.start_with_windows)
+        else:
+            self.start_with_windows_checkbox.setChecked(False)
+        self.start_with_windows_checkbox.stateChanged.connect(self.on_start_with_windows_changed)
+        right_column.addWidget(self.start_with_windows_checkbox)
+        
+        right_column.addSpacing(5)
+        
+        # Minimize to system tray checkbox
+        self.minimize_to_tray_checkbox = CheckBoxWithCheckmark("Minimize to system tray", self.current_theme, self.category_subcategory_color)
+        self.minimize_to_tray_checkbox.setFont(FontManager.get_font(9))
+        self.minimize_to_tray_checkbox.setStyleSheet("margin-left: 30px;")
+        if hasattr(self.parent_window, 'data_manager'):
+            self.minimize_to_tray_checkbox.setChecked(self.parent_window.data_manager.minimize_to_tray)
+        else:
+            self.minimize_to_tray_checkbox.setChecked(False)
+        right_column.addWidget(self.minimize_to_tray_checkbox)
+        
+        right_column.addSpacing(5)
+        
+        # Start minimized checkbox (sub-option of Start with Windows)
+        self.start_minimized_checkbox = CheckBoxWithCheckmark("Start minimized (hidden)", self.current_theme, self.category_subcategory_color)
+        self.start_minimized_checkbox.setFont(FontManager.get_font(9))
+        self.start_minimized_checkbox.setStyleSheet("margin-left: 50px;")  # More indented as sub-option
+        self.start_minimized_checkbox.setToolTip("When starting with OS session, start PurrMoji minimized")
+        if hasattr(self.parent_window, 'data_manager'):
+            self.start_minimized_checkbox.setChecked(self.parent_window.data_manager.start_minimized)
+        else:
+            self.start_minimized_checkbox.setChecked(False)
+        right_column.addWidget(self.start_minimized_checkbox)
+        
+        # Update initial state of start_minimized based on start_with_windows
+        self.update_start_minimized_state()
+        
+        # Add stretch at the end of right column
+        right_column.addStretch()
+        
         # Add right column to columns layout
         columns_layout.addLayout(right_column)
         
@@ -550,11 +613,13 @@ class SettingsDialog(ThemedDialogMixin, QDialog):
         
         ok_button = QPushButton("OK")
         ok_button.setFixedSize(80, 30)
+        ok_button.setFont(FontManager.get_font(9))
         ok_button.clicked.connect(self.accept_settings)
         button_layout.addWidget(ok_button)
         
         cancel_button = QPushButton("Cancel")
         cancel_button.setFixedSize(80, 30)
+        cancel_button.setFont(FontManager.get_font(9))
         cancel_button.clicked.connect(self.reject_settings)
         button_layout.addWidget(cancel_button)
         
@@ -569,13 +634,7 @@ class SettingsDialog(ThemedDialogMixin, QDialog):
         )
     
     def reject_settings(self):
-        """Cancel and restore initial theme if it was changed"""
-        # Restore initial theme to parent window if user changed it
-        selected_theme = self.theme_combo.currentText()
-        if selected_theme != self.initial_theme:
-            # Theme was changed but user cancelled, don't apply it
-            pass
-        
+        """Cancel and close dialog"""
         self.reject()
     
     def on_use_last_used_tab_changed(self):
@@ -720,20 +779,38 @@ class SettingsDialog(ThemedDialogMixin, QDialog):
                 border: 2px solid {border_color};
             }}
         """)
+        
+        # Update reset buttons state
+        self.update_bg_color_reset_buttons_state()
+    
+    def update_bg_color_reset_buttons_state(self):
+        """Update enabled state of background color reset buttons"""
+        if hasattr(self, 'bg_color_light_reset_button'):
+            self.bg_color_light_reset_button.setEnabled(
+                self.bg_color_light.lower() != self.DEFAULT_BG_COLOR_LIGHT.lower()
+            )
+        if hasattr(self, 'bg_color_medium_reset_button'):
+            self.bg_color_medium_reset_button.setEnabled(
+                self.bg_color_medium.lower() != self.DEFAULT_BG_COLOR_MEDIUM.lower()
+            )
+        if hasattr(self, 'bg_color_dark_reset_button'):
+            self.bg_color_dark_reset_button.setEnabled(
+                self.bg_color_dark.lower() != self.DEFAULT_BG_COLOR_DARK.lower()
+            )
     
     def reset_bg_color_light(self):
         """Reset background color for Light theme to default"""
-        self.bg_color_light = '#ffffff'
+        self.bg_color_light = self.DEFAULT_BG_COLOR_LIGHT
         self.update_bg_color_button_styles()
     
     def reset_bg_color_medium(self):
         """Reset background color for Medium theme to default"""
-        self.bg_color_medium = '#4b4b4b'
+        self.bg_color_medium = self.DEFAULT_BG_COLOR_MEDIUM
         self.update_bg_color_button_styles()
     
     def reset_bg_color_dark(self):
         """Reset background color for Dark theme to default"""
-        self.bg_color_dark = '#312829'
+        self.bg_color_dark = self.DEFAULT_BG_COLOR_DARK
         self.update_bg_color_button_styles()
     
     def choose_emoji_selection_color(self):
@@ -749,7 +826,7 @@ class SettingsDialog(ThemedDialogMixin, QDialog):
     
     def reset_emoji_selection_color(self):
         """Reset emoji selection color to default"""
-        self.emoji_selection_color = '#3699e7'
+        self.emoji_selection_color = self.DEFAULT_EMOJI_SELECTION_COLOR
         self.update_color_button_styles()
     
     def choose_category_subcategory_color(self):
@@ -768,7 +845,7 @@ class SettingsDialog(ThemedDialogMixin, QDialog):
     
     def reset_category_subcategory_color(self):
         """Reset category/subcategory color to default"""
-        self.category_subcategory_color = '#00557f'
+        self.category_subcategory_color = self.DEFAULT_CATEGORY_SUBCATEGORY_COLOR
         self.update_color_button_styles()
         self.update_checkboxes_color()
         # Reapply dialog stylesheet with default color
@@ -791,6 +868,23 @@ class SettingsDialog(ThemedDialogMixin, QDialog):
         # Update use last used tab checkbox
         if hasattr(self, 'use_last_used_tab_checkbox'):
             self.use_last_used_tab_checkbox.set_background_color(self.category_subcategory_color)
+        
+        # Update window behavior checkboxes
+        if hasattr(self, 'start_with_windows_checkbox'):
+            self.start_with_windows_checkbox.set_background_color(self.category_subcategory_color)
+        if hasattr(self, 'minimize_to_tray_checkbox'):
+            self.minimize_to_tray_checkbox.set_background_color(self.category_subcategory_color)
+        if hasattr(self, 'start_minimized_checkbox'):
+            self.start_minimized_checkbox.set_background_color(self.category_subcategory_color)
+    
+    def on_start_with_windows_changed(self):
+        """Handle start with Windows checkbox state change"""
+        self.update_start_minimized_state()
+    
+    def update_start_minimized_state(self):
+        """Update the enabled state of start_minimized based on start_with_windows"""
+        enabled = self.start_with_windows_checkbox.isChecked()
+        self.start_minimized_checkbox.setEnabled(enabled)
     
     def update_color_button_styles(self):
         """Update the color buttons to display the current colors"""
@@ -815,6 +909,20 @@ class SettingsDialog(ThemedDialogMixin, QDialog):
                 border: 2px solid #333;
             }}
         """)
+        
+        # Update reset buttons state
+        self.update_color_reset_buttons_state()
+    
+    def update_color_reset_buttons_state(self):
+        """Update enabled state of color reset buttons"""
+        if hasattr(self, 'emoji_selection_reset_button'):
+            self.emoji_selection_reset_button.setEnabled(
+                self.emoji_selection_color.lower() != self.DEFAULT_EMOJI_SELECTION_COLOR.lower()
+            )
+        if hasattr(self, 'category_subcategory_reset_button'):
+            self.category_subcategory_reset_button.setEnabled(
+                self.category_subcategory_color.lower() != self.DEFAULT_CATEGORY_SUBCATEGORY_COLOR.lower()
+            )
     
     def accept_settings(self):
         """Save the checkbox states and colors to parent window"""
@@ -887,7 +995,213 @@ class SettingsDialog(ThemedDialogMixin, QDialog):
         if hasattr(self.parent_window, 'update_selection_color_stylesheets'):
             self.parent_window.update_selection_color_stylesheets()
         
+        # Save window behavior settings
+        if hasattr(self.parent_window, 'data_manager'):
+            # Handle start with Windows
+            start_with_windows = self.start_with_windows_checkbox.isChecked()
+            old_start_with_windows = self.parent_window.data_manager.start_with_windows
+            
+            self.parent_window.data_manager.start_with_windows = start_with_windows
+            self.parent_window.data_manager.save_data('start_with_windows', start_with_windows)
+            
+            # Update OS startup if setting changed
+            if start_with_windows != old_start_with_windows:
+                self.update_os_startup(start_with_windows)
+            
+            # Save minimize to tray setting
+            minimize_to_tray = self.minimize_to_tray_checkbox.isChecked()
+            self.parent_window.data_manager.minimize_to_tray = minimize_to_tray
+            self.parent_window.data_manager.save_data('minimize_to_tray', minimize_to_tray)
+            
+            # Update tray icon visibility in parent window
+            if hasattr(self.parent_window, 'update_tray_icon_visibility'):
+                self.parent_window.update_tray_icon_visibility()
+            
+            # Save start minimized setting
+            start_minimized = self.start_minimized_checkbox.isChecked()
+            self.parent_window.data_manager.start_minimized = start_minimized
+            self.parent_window.data_manager.save_data('start_minimized', start_minimized)
+        
         self.accept()
+    
+    def update_os_startup(self, enable):
+        """Create or remove OS startup entry (Windows, Linux, macOS)
+        
+        Args:
+            enable: True to add startup entry, False to remove it
+        """
+        system = platform.system()
+        
+        if system == "Windows":
+            self._update_windows_startup(enable)
+        elif system == "Linux":
+            self._update_linux_startup(enable)
+        elif system == "Darwin":
+            self._update_macos_startup(enable)
+            
+    def _update_windows_startup(self, enable):
+        """Create or remove Windows startup shortcut"""
+        try:
+            # Get Windows Startup folder path
+            startup_folder = os.path.join(
+                os.environ.get('APPDATA', ''),
+                'Microsoft', 'Windows', 'Start Menu', 'Programs', 'Startup'
+            )
+            
+            shortcut_path = os.path.join(startup_folder, 'PurrMoji Emoji Picker.lnk')
+            
+            if enable:
+                # Create shortcut using PowerShell (works without external dependencies)
+                if getattr(sys, 'frozen', False):
+                    # Running as compiled executable
+                    target_path = sys.executable
+                    arguments = "--minimized" if self.start_minimized_checkbox.isChecked() else ""
+                else:
+                    # Running as script - create a shortcut to pythonw with the script
+                    target_path = sys.executable
+                    script_path = os.path.abspath(sys.argv[0]) if sys.argv else ""
+                    # Use pythonw.exe if available to avoid console window
+                    if target_path.endswith("python.exe"):
+                        pythonw = target_path.replace("python.exe", "pythonw.exe")
+                        if os.path.exists(pythonw):
+                            target_path = pythonw
+                    
+                    arguments = f'"{script_path}" --minimized' if self.start_minimized_checkbox.isChecked() else f'"{script_path}"'
+                
+                # Escape quotes for PowerShell
+                target_path_escaped = target_path.replace('"', '`"')
+                arguments_escaped = arguments.replace('"', '`"')
+                working_dir = os.path.dirname(target_path).replace('"', '`"')
+                
+                # Use PowerShell to create the shortcut
+                ps_script = f'''
+                $WshShell = New-Object -ComObject WScript.Shell
+                $Shortcut = $WshShell.CreateShortcut("{shortcut_path}")
+                $Shortcut.TargetPath = "{target_path_escaped}"
+                $Shortcut.Arguments = "{arguments_escaped}"
+                $Shortcut.WorkingDirectory = "{working_dir}"
+                $Shortcut.Description = "PurrMoji Emoji Picker"
+                $Shortcut.Save()
+                '''
+                
+                import subprocess
+                subprocess.run(
+                    ['powershell', '-Command', ps_script],
+                    capture_output=True,
+                    creationflags=subprocess.CREATE_NO_WINDOW if hasattr(subprocess, 'CREATE_NO_WINDOW') else 0
+                )
+            else:
+                # Remove shortcut if it exists
+                if os.path.exists(shortcut_path):
+                    os.remove(shortcut_path)
+                    
+        except Exception as e:
+            print(f"[ERROR] Failed to update Windows startup: {e}")
+
+    def _update_linux_startup(self, enable):
+        """Create or remove Linux XDG autostart entry"""
+        try:
+            config_home = os.environ.get('XDG_CONFIG_HOME', os.path.expanduser('~/.config'))
+            autostart_dir = os.path.join(config_home, 'autostart')
+            
+            if not os.path.exists(autostart_dir):
+                os.makedirs(autostart_dir)
+                
+            desktop_file_path = os.path.join(autostart_dir, 'purrmoji.desktop')
+            
+            if enable:
+                # Prepare Exec command
+                if getattr(sys, 'frozen', False):
+                    exec_cmd = sys.executable
+                else:
+                    script_path = os.path.abspath(sys.argv[0])
+                    exec_cmd = f"{sys.executable} \"{script_path}\""
+                
+                if self.start_minimized_checkbox.isChecked():
+                    exec_cmd += " --minimized"
+
+                # Get icon path
+                icon_path = self.path_manager.get_misc_file("Kitty-Head.svg")
+                if not os.path.exists(icon_path):
+                    # Fallback to png if svg doesn't exist or for better compatibility
+                    icon_path = self.path_manager.get_misc_file("Kitty-Head.png")
+
+                content = f"""[Desktop Entry]
+Type=Application
+Name=PurrMoji Emoji Picker
+Comment=The cutest emoji picker
+Exec={exec_cmd}
+Icon={icon_path}
+Terminal=false
+Categories=Utility;
+StartupNotify=false
+X-GNOME-Autostart-enabled=true
+"""
+                with open(desktop_file_path, 'w') as f:
+                    f.write(content)
+                
+                # Make executable
+                os.chmod(desktop_file_path, 0o755)
+                
+            else:
+                if os.path.exists(desktop_file_path):
+                    os.remove(desktop_file_path)
+                    
+        except Exception as e:
+            print(f"[ERROR] Failed to update Linux startup: {e}")
+
+    def _update_macos_startup(self, enable):
+        """Create or remove macOS LaunchAgent"""
+        try:
+            label = "com.xan2622.purrmoji"
+            launch_agents_dir = os.path.expanduser('~/Library/LaunchAgents')
+            plist_path = os.path.join(launch_agents_dir, f'{label}.plist')
+            
+            if not os.path.exists(launch_agents_dir):
+                os.makedirs(launch_agents_dir)
+            
+            if enable:
+                if getattr(sys, 'frozen', False):
+                    # If it's a .app bundle, we might need 'open -a' or direct executable
+                    # Assuming sys.executable points to the binary inside MacOS folder
+                    executable = sys.executable
+                    args_list = [executable]
+                else:
+                    script_path = os.path.abspath(sys.argv[0])
+                    executable = sys.executable
+                    args_list = [executable, script_path]
+                
+                if self.start_minimized_checkbox.isChecked():
+                    args_list.append("--minimized")
+                
+                # Create XML for plist
+                args_xml = "\n".join([f"        <string>{arg}</string>" for arg in args_list])
+                
+                content = f"""<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>{label}</string>
+    <key>ProgramArguments</key>
+    <array>
+{args_xml}
+    </array>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>ProcessType</key>
+    <string>Interactive</string>
+</dict>
+</plist>
+"""
+                with open(plist_path, 'w') as f:
+                    f.write(content)
+            else:
+                if os.path.exists(plist_path):
+                    os.remove(plist_path)
+                    
+        except Exception as e:
+            print(f"[ERROR] Failed to update macOS startup: {e}")
     
     def open_packages_folder(self):
         """Open the extracted packages folder in file explorer"""

@@ -253,6 +253,7 @@ class AboutDialog(ThemedDialogMixin, QDialog):
         # Add OK button
         ok_button = QPushButton("OK")
         ok_button.setFixedSize(100, 30)
+        ok_button.setFont(FontManager.get_font(9))
         ok_button.clicked.connect(self.accept)
         button_layout.addWidget(ok_button)
         layout.addLayout(button_layout)

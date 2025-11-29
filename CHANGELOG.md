@@ -1,5 +1,32 @@
 # PurrMoji Emoji Picker Changelog
 
+## Version 1.2.0
+
+### Added:
+
+- **Global Hotkey:** Added a configurable global hotkey (default: `Ctrl+Alt+X`) to instantly show/hide PurrMoji from anywhere.
+- **Auto-Start:** Added option to automatically launch PurrMoji when the OS session starts (Windows, Linux, macOS).
+- **System Tray Integration:** Added option to minimize PurrMoji to the system tray, keeping it running in the background for quick access.
+- **Customizable Shortcuts:** All application shortcuts (navigation, themes, size, etc.) are now fully customizable in the Hotkeys dialog.
+- **Customizable Mouse Actions:** Mouse actions (copy to clipboard, toggle favorites, resize wheel) are now customizable with modifier keys and click types.
+- **Start Minimized:** Added option to start PurrMoji silently in the background (minimized to tray) on startup.
+
+### Improved:
+
+- **Reset Buttons Logic:** Reset buttons (↩) in Hotkeys and Settings dialogs are now only clickable when the current value differs from the default.
+- **Disabled State Styling:** Improved visual feedback for disabled UI elements (labels, buttons, inputs) in Dark and Medium themes.
+- **Checkbox/RadioButton Hover:** Fixed hover background color for checkboxes and radio buttons in Light theme to be more visible.
+- **Button Font Consistency:** OK and Cancel buttons now use the same font size as Hotkeys, Settings, and About buttons.
+- **Global Hotkey UI:** When the global hotkey is disabled, related elements (label, warning text, buttons) are now properly grayed out.
+- **Win+. Conflict Warning:** When `Win+.` is set as the global hotkey, a warning is displayed to inform the user that this hotkey conflicts with Windows' own emoji picker.
+
+### Released binaries:
+
+- PurrMoji_Emoji_Picker-1.2.0-windows-x64.zip
+- purrmoji-1.2.0-1.x86_64.rpm
+- purrmoji_1.2.0_amd64.deb
+
+
 ## Version 1.1.0
 
 ### Fixed: 

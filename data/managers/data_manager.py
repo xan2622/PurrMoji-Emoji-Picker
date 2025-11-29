@@ -49,6 +49,29 @@ class DataManager:
         self.use_last_used_tab = True  # If True, display the last used tab instead of the default tab
         self.last_used_recent_favorites_tab = 'recent'  # Last used tab in Recent & Favorites
         
+        # Startup and System Tray settings
+        self.start_with_windows = False  # Launch PurrMoji at Windows startup
+        self.minimize_to_tray = False  # Minimize to system tray instead of taskbar
+        self.start_minimized = False  # Start minimized (hidden) when launching at startup
+        self.global_hotkey = 'Ctrl+Alt+X'  # Global hotkey to show/hide PurrMoji
+        self.global_hotkey_enabled = True  # Enable/disable global hotkey
+        
+        # Application shortcuts (customizable)
+        self.app_shortcuts = {
+            'increase_size': 'Numpad +',
+            'decrease_size': 'Numpad -',
+            'previous_package': 'Page Up',
+            'next_package': 'Page Down',
+            'cycle_theme': 'T'
+        }
+        
+        # Mouse actions (customizable)
+        self.mouse_actions = {
+            'copy_to_clipboard': 'Double-click',
+            'toggle_favorites': 'Shift+Left Click',
+            'resize_wheel': 'Shift+Wheel'
+        }
+        
         # Preferences for what should be saved
         self.save_preferences = {
             "last_selected_package": True,
@@ -102,6 +125,33 @@ class DataManager:
                 self.default_recent_favorites_tab = data.get('default_recent_favorites_tab', 'recent')
                 self.use_last_used_tab = data.get('use_last_used_tab', True)
                 self.last_used_recent_favorites_tab = data.get('last_used_recent_favorites_tab', 'recent')
+                
+                # Load startup and system tray settings
+                self.start_with_windows = data.get('start_with_windows', False)
+                self.minimize_to_tray = data.get('minimize_to_tray', False)
+                self.start_minimized = data.get('start_minimized', False)
+                self.global_hotkey = data.get('global_hotkey', 'Ctrl+Alt+X')
+                self.global_hotkey_enabled = data.get('global_hotkey_enabled', True)
+                
+                # Load application shortcuts
+                saved_shortcuts = data.get('app_shortcuts', {})
+                default_shortcuts = {
+                    'increase_size': 'Numpad +',
+                    'decrease_size': 'Numpad -',
+                    'previous_package': 'Page Up',
+                    'next_package': 'Page Down',
+                    'cycle_theme': 'T'
+                }
+                self.app_shortcuts = {k: saved_shortcuts.get(k, v) for k, v in default_shortcuts.items()}
+                
+                # Load mouse actions
+                saved_mouse_actions = data.get('mouse_actions', {})
+                default_mouse_actions = {
+                    'copy_to_clipboard': 'Double-click',
+                    'toggle_favorites': 'Shift+Left Click',
+                    'resize_wheel': 'Shift+Wheel'
+                }
+                self.mouse_actions = {k: saved_mouse_actions.get(k, v) for k, v in default_mouse_actions.items()}
                 
                 # Load save preferences
                 saved_preferences = data.get('save_preferences', {})

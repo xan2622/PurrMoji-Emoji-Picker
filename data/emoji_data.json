@@ -4885,6 +4885,7 @@
     "👃🏽": "Nose"
   },
   "recent": [
+    "👉",
     "👎",
     "👍",
     "😘",
@@ -7635,7 +7636,7 @@
   "emoji_usage_count": {
     "😀": 10,
     "😕": 5,
-    "👍": 6,
+    "👍": 7,
     "👀": 1,
     "😒": 4,
     "😯": 3,
@@ -7647,8 +7648,9 @@
     "🫜": 1,
     "🥝": 1,
     "🐌": 1,
-    "😘": 2,
-    "👎": 1
+    "😘": 3,
+    "👎": 1,
+    "👉": 1
   },
   "frequently_used": [
     "😀",
@@ -7665,5 +7667,22 @@
   "background_color_medium": "#4b4b4b",
   "default_recent_favorites_tab": "favorites",
   "last_used_recent_favorites_tab": "favorites",
-  "use_last_used_tab": true
+  "use_last_used_tab": true,
+  "start_with_windows": false,
+  "minimize_to_tray": true,
+  "start_minimized": false,
+  "global_hotkey_enabled": true,
+  "global_hotkey": "Ctrl+Alt+X",
+  "app_shortcuts": {
+    "increase_size": "Numpad +",
+    "decrease_size": "Numpad -",
+    "previous_package": "Page Up",
+    "next_package": "Page Down",
+    "cycle_theme": "T"
+  },
+  "mouse_actions": {
+    "copy_to_clipboard": "Double-click",
+    "toggle_favorites": "Shift+Left Click",
+    "resize_wheel": "Shift+Wheel"
+  }
 }

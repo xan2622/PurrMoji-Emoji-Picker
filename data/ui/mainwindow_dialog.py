@@ -20,7 +20,7 @@ from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QGridLayout,
     QPushButton, QLineEdit, QScrollArea, QLabel, QRadioButton, QButtonGroup,
     QMenu, QAction, QMessageBox, QComboBox, QDialog, QCheckBox, QSizePolicy,
-    QShortcut
+    QShortcut, QSystemTrayIcon
 )
 from PyQt5.QtCore import Qt, QTimer, pyqtSignal, QSize, QIODevice
 from PyQt5.QtGui import (
@@ -32,7 +32,7 @@ from PyQt5.QtSvg import QSvgRenderer
 # Import managers for modular architecture
 from managers import (
     PathManager, DataManager, CacheManager, EmojiManager, PackageManager,
-    PackageInitializer, ThemeManager, FontManager
+    PackageInitializer, ThemeManager, FontManager, KeyboardManager, PYNPUT_AVAILABLE
 )
 
 # Import UI components
@@ -55,6 +55,9 @@ skia_renderer = get_skia_renderer()
 
 class EmojiPicker(QMainWindow):
     """Main Emoji Picker application class"""
+    
+    # Signal for thread-safe window toggle from global hotkey
+    toggle_visibility_signal = pyqtSignal()
     
     # Configuration table for radio buttons per package type
     # Structure: {package_type: {button_name: (visible, enabled, checked, style)}}
@@ -276,6 +279,12 @@ class EmojiPicker(QMainWindow):
         # Delegate to PackageInitializer for clean, strategy-based initialization
         self.package_initializer.initialize_package(self.current_emoji_package)
         
+        # Initialize System Tray icon
+        self.init_system_tray()
+        
+        # Initialize global keyboard shortcut
+        self.init_keyboard_manager()
+        
         # Update displayed emoji source label (for all packages)
         self.update_displayed_emoji_source_label()
         
@@ -301,36 +310,156 @@ class EmojiPicker(QMainWindow):
             return self.data_manager.emoji_background_color_dark
     
     def setup_keyboard_shortcuts(self):
-        """Setup global keyboard shortcuts"""
-        # Page Up: Navigate to previous package
-        shortcut_page_up = QShortcut(QKeySequence(Qt.Key_PageUp), self)
-        shortcut_page_up.activated.connect(self.navigate_to_previous_package)
-        shortcut_page_up.setContext(Qt.ApplicationShortcut)
+        """Setup global keyboard shortcuts using customizable bindings"""
+        # Store shortcut references for later updates
+        self.app_shortcut_objects = {}
         
-        # Page Down: Navigate to next package
-        shortcut_page_down = QShortcut(QKeySequence(Qt.Key_PageDown), self)
-        shortcut_page_down.activated.connect(self.navigate_to_next_package)
-        shortcut_page_down.setContext(Qt.ApplicationShortcut)
+        # Get custom shortcuts from data manager
+        shortcuts = getattr(self.data_manager, 'app_shortcuts', {})
         
-        # Numpad Minus: Decrease emoji size
-        shortcut_numpad_minus = QShortcut(QKeySequence(Qt.Key_Minus), self)
-        shortcut_numpad_minus.activated.connect(self.on_decrease_size)
-        shortcut_numpad_minus.setContext(Qt.ApplicationShortcut)
+        # Shortcut configuration: id -> (default_key, callback, context)
+        shortcut_config = {
+            'previous_package': ('Page Up', self.navigate_to_previous_package, Qt.ApplicationShortcut),
+            'next_package': ('Page Down', self.navigate_to_next_package, Qt.ApplicationShortcut),
+            'decrease_size': ('Numpad -', self.on_decrease_size, Qt.ApplicationShortcut),
+            'increase_size': ('Numpad +', self.on_increase_size, Qt.ApplicationShortcut),
+            'cycle_theme': ('T', self.cycle_theme, Qt.WindowShortcut),
+        }
         
-        # Numpad Plus: Increase emoji size
-        shortcut_numpad_plus = QShortcut(QKeySequence(Qt.Key_Plus), self)
-        shortcut_numpad_plus.activated.connect(self.on_increase_size)
-        shortcut_numpad_plus.setContext(Qt.ApplicationShortcut)
+        for shortcut_id, (default_key, callback, context) in shortcut_config.items():
+            key_string = shortcuts.get(shortcut_id, default_key)
+            key_sequence = self.parse_shortcut_string(key_string)
+            
+            shortcut = QShortcut(key_sequence, self)
+            shortcut.activated.connect(callback)
+            shortcut.setContext(context)
+            self.app_shortcut_objects[shortcut_id] = shortcut
         
-        # T: Cycle through themes (Light -> Medium -> Dark -> Light)
-        shortcut_theme_toggle = QShortcut(QKeySequence(Qt.Key_T), self)
-        shortcut_theme_toggle.activated.connect(self.cycle_theme)
-        shortcut_theme_toggle.setContext(Qt.WindowShortcut)
-        
-        # Install event filter on widgets to prevent them from handling Page Up/Down
+        # Install event filter on widgets to prevent them from handling shortcuts
         self.emoji_package_combo.installEventFilter(self)
         self.emoji_scroll_area.installEventFilter(self)
         self.search_edit.installEventFilter(self)
+    
+    def parse_shortcut_string(self, shortcut_str):
+        """Parse a shortcut string into QKeySequence
+        
+        Args:
+            shortcut_str: String like 'Ctrl+Shift+T', 'Page Up', 'Numpad +'
+        
+        Returns:
+            QKeySequence for the shortcut
+        """
+        # Special key mappings
+        key_map = {
+            'page up': Qt.Key_PageUp,
+            'page down': Qt.Key_PageDown,
+            'numpad +': Qt.Key_Plus,
+            'numpad -': Qt.Key_Minus,
+            'numpad *': Qt.Key_Asterisk,
+            'numpad /': Qt.Key_Slash,
+            'space': Qt.Key_Space,
+            'enter': Qt.Key_Return,
+            'escape': Qt.Key_Escape,
+            'tab': Qt.Key_Tab,
+            'backspace': Qt.Key_Backspace,
+            'delete': Qt.Key_Delete,
+            'home': Qt.Key_Home,
+            'end': Qt.Key_End,
+            'left': Qt.Key_Left,
+            'right': Qt.Key_Right,
+            'up': Qt.Key_Up,
+            'down': Qt.Key_Down,
+        }
+        
+        shortcut_lower = shortcut_str.lower().strip()
+        
+        # Check for simple key mappings first
+        if shortcut_lower in key_map:
+            return QKeySequence(key_map[shortcut_lower])
+        
+        # Try to parse as QKeySequence string (handles Ctrl+X, etc.)
+        return QKeySequence(shortcut_str)
+    
+    def update_app_shortcuts(self):
+        """Update application shortcuts after user customization"""
+        # Remove existing shortcuts
+        if hasattr(self, 'app_shortcut_objects'):
+            for shortcut in self.app_shortcut_objects.values():
+                shortcut.setEnabled(False)
+                shortcut.deleteLater()
+            self.app_shortcut_objects.clear()
+        
+        # Recreate shortcuts with new bindings
+        shortcuts = getattr(self.data_manager, 'app_shortcuts', {})
+        
+        shortcut_config = {
+            'previous_package': ('Page Up', self.navigate_to_previous_package, Qt.ApplicationShortcut),
+            'next_package': ('Page Down', self.navigate_to_next_package, Qt.ApplicationShortcut),
+            'decrease_size': ('Numpad -', self.on_decrease_size, Qt.ApplicationShortcut),
+            'increase_size': ('Numpad +', self.on_increase_size, Qt.ApplicationShortcut),
+            'cycle_theme': ('T', self.cycle_theme, Qt.WindowShortcut),
+        }
+        
+        self.app_shortcut_objects = {}
+        for shortcut_id, (default_key, callback, context) in shortcut_config.items():
+            key_string = shortcuts.get(shortcut_id, default_key)
+            key_sequence = self.parse_shortcut_string(key_string)
+            
+            shortcut = QShortcut(key_sequence, self)
+            shortcut.activated.connect(callback)
+            shortcut.setContext(context)
+            self.app_shortcut_objects[shortcut_id] = shortcut
+    
+    def update_mouse_actions(self):
+        """Update mouse action mappings after user customization
+        
+        This method updates the wheel event connections based on user preferences.
+        Click actions are handled dynamically in the event handlers.
+        """
+        mouse_actions = getattr(self.data_manager, 'mouse_actions', {})
+        resize_action = mouse_actions.get('resize_wheel', 'Ctrl+Wheel')
+        
+        # Disconnect all wheel signals first
+        try:
+            self.emoji_scroll_area.wheelEventWithCtrl.disconnect()
+        except TypeError:
+            pass
+        try:
+            self.emoji_scroll_area.wheelEventWithShift.disconnect()
+        except TypeError:
+            pass
+        try:
+            self.emoji_scroll_area.wheelEventWithAlt.disconnect()
+        except TypeError:
+            pass
+        
+        # Connect the appropriate wheel signal based on user preference
+        if resize_action == 'Ctrl+Wheel':
+            self.emoji_scroll_area.wheelEventWithCtrl.connect(self.on_wheel_event_with_ctrl)
+        elif resize_action == 'Shift+Wheel':
+            self.emoji_scroll_area.wheelEventWithShift.connect(self.on_wheel_event_with_ctrl)
+        elif resize_action == 'Alt+Wheel':
+            self.emoji_scroll_area.wheelEventWithAlt.connect(self.on_wheel_event_with_ctrl)
+        elif resize_action == 'Wheel':
+            # No modifier - wheel directly changes size (no scrolling)
+            pass
+    
+    def get_mouse_action_for_event(self, event_type):
+        """Get the action to perform for a given mouse event type
+        
+        Args:
+            event_type: 'Click', 'Double-click', 'Shift+Click', 'Ctrl+Click', 'Alt+Click'
+        
+        Returns:
+            Action name: 'copy_to_clipboard', 'toggle_favorites', or None
+        """
+        mouse_actions = getattr(self.data_manager, 'mouse_actions', {})
+        
+        for action_id, configured_event in mouse_actions.items():
+            if configured_event == event_type:
+                return action_id
+        
+        return None
     
     def eventFilter(self, obj, event):
         """Event filter to intercept keyboard shortcuts on various widgets"""
@@ -980,6 +1109,12 @@ class EmojiPicker(QMainWindow):
         )
         btn.doubleClicked.connect(
             lambda checked=False, e=emoji, b=btn: self.on_emoji_double_click(e, b)
+        )
+        btn.ctrlClicked.connect(
+            lambda e=emoji, b=btn: self.on_emoji_ctrl_click(e, b)
+        )
+        btn.altClicked.connect(
+            lambda e=emoji, b=btn: self.on_emoji_alt_click(e, b)
         )
         
         # Add context menu for compound emojis
@@ -1900,8 +2035,8 @@ class EmojiPicker(QMainWindow):
         self.emoji_layout.setAlignment(Qt.AlignTop | Qt.AlignLeft)  # Force top-left alignment
         self.emoji_scroll_area.setWidget(self.emoji_widget)
         
-        # Connect wheel event with Ctrl modifier to size adjustment handler
-        self.emoji_scroll_area.wheelEventWithCtrl.connect(self.on_wheel_event_with_ctrl)
+        # Connect wheel event based on user mouse action preferences
+        self.update_mouse_actions()
         
         self.main_layout.addWidget(self.emoji_scroll_area)
         
@@ -3274,6 +3409,8 @@ class EmojiPicker(QMainWindow):
                     btn.clicked.connect(lambda checked, f=filename, b=btn: self.on_custom_emoji_click(f, b))
                     btn.doubleClicked.connect(lambda f=filename, b=btn: self.on_custom_emoji_double_click(f, b))
                     btn.shiftClicked.connect(lambda f=filename, b=btn: self.on_custom_emoji_shift_click(f, b))
+                    btn.ctrlClicked.connect(lambda f=filename, b=btn: self.on_custom_emoji_ctrl_click(f, b))
+                    btn.altClicked.connect(lambda f=filename, b=btn: self.on_custom_emoji_alt_click(f, b))
                     
                     # Add to grid
                     self.emoji_layout.addWidget(btn, row, col)
@@ -3328,6 +3465,8 @@ class EmojiPicker(QMainWindow):
                     self.current_emojis.append(item)
                     btn = self.create_emoji_button(item, row, col)
                     btn.shiftClicked.connect(lambda e=item, b=btn: self.on_emoji_shift_click(e, b))
+                    btn.ctrlClicked.connect(lambda e=item, b=btn: self.on_emoji_ctrl_click(e, b))
+                    btn.altClicked.connect(lambda e=item, b=btn: self.on_emoji_alt_click(e, b))
                     
                     # Move to next position (emoji takes 1 column)
                     col += 1
@@ -3440,8 +3579,10 @@ class EmojiPicker(QMainWindow):
                 # Create emoji button using utility method
                 btn = self.create_emoji_button(emoji, row, col)
                 
-                # Add shift click handler (not in create_emoji_button to avoid duplication in search)
+                # Add modifier click handlers (not in create_emoji_button to avoid duplication in search)
                 btn.shiftClicked.connect(lambda e=emoji, b=btn: self.on_emoji_shift_click(e, b))
+                btn.ctrlClicked.connect(lambda e=emoji, b=btn: self.on_emoji_ctrl_click(e, b))
+                btn.altClicked.connect(lambda e=emoji, b=btn: self.on_emoji_alt_click(e, b))
                 
                 # Move to next position (regular emoji, 1 column)
                 col += 1
@@ -3776,6 +3917,8 @@ class EmojiPicker(QMainWindow):
         btn.clicked.connect(lambda checked, k=kaomoji_text, b=btn: self.on_kaomoji_click(k, b))
         btn.doubleClicked.connect(lambda k=kaomoji_text, b=btn: self.on_kaomoji_double_click(k, b))
         btn.shiftClicked.connect(lambda k=kaomoji_text, b=btn: self.on_kaomoji_shift_click(k, b))
+        btn.ctrlClicked.connect(lambda k=kaomoji_text, b=btn: self.on_kaomoji_ctrl_click(k, b))
+        btn.altClicked.connect(lambda k=kaomoji_text, b=btn: self.on_kaomoji_alt_click(k, b))
         
         # Calculate colspan based on button width (each emoji cell = emoji_size width)
         # 97px button = 2 columns, 146px = 3 columns, 195px = 4 columns
@@ -3857,21 +4000,23 @@ class EmojiPicker(QMainWindow):
         Args:
             item: Item to handle (emoji char, kaomoji text, or custom filename)
             button: QPushButton that was clicked
-            click_type: 'single', 'double', or 'shift'
+            click_type: 'Click', 'Double-click', 'Shift+Click', 'Ctrl+Click', 'Alt+Click'
         """
         # Always select and update preview for all click types
         self.select_emoji_button(item, button)
         self.update_emoji_preview()
         
-        if click_type == 'double':
-            # Double-click: copy to clipboard
+        # Get the action configured for this click type
+        action = self.get_mouse_action_for_event(click_type)
+        
+        if action == 'copy_to_clipboard':
             if self.current_emoji_package == "Custom":
                 self.copy_selected_emoji()
             else:
                 self.copy_emoji_to_clipboard(item)
         
-        elif click_type == 'shift':
-            # Shift+click: toggle favorites (skip for custom package)
+        elif action == 'toggle_favorites':
+            # Toggle favorites (skip for custom package)
             if self.current_emoji_package != "Custom":
                 if item in self.favorite_emojis:
                     self.remove_from_favorites()
@@ -3879,16 +4024,24 @@ class EmojiPicker(QMainWindow):
                     self.add_to_favorites()
     
     def on_emoji_click(self, emoji, button=None):
-        """Handle emoji button single click - select and display preview only"""
-        self.handle_item_click(emoji, button, 'single')
+        """Handle emoji button single click"""
+        self.handle_item_click(emoji, button, 'Click')
     
     def on_emoji_double_click(self, emoji, button=None):
-        """Handle emoji button double click - copy to clipboard"""
-        self.handle_item_click(emoji, button, 'double')
+        """Handle emoji button double click"""
+        self.handle_item_click(emoji, button, 'Double-click')
     
     def on_emoji_shift_click(self, emoji, button=None):
-        """Handle emoji button Shift+Click - toggle favorites (add/remove)"""
-        self.handle_item_click(emoji, button, 'shift')
+        """Handle emoji button Shift+Click"""
+        self.handle_item_click(emoji, button, 'Shift+Click')
+    
+    def on_emoji_ctrl_click(self, emoji, button=None):
+        """Handle emoji button Ctrl+Click"""
+        self.handle_item_click(emoji, button, 'Ctrl+Click')
+    
+    def on_emoji_alt_click(self, emoji, button=None):
+        """Handle emoji button Alt+Click"""
+        self.handle_item_click(emoji, button, 'Alt+Click')
     
     def get_emoji_name(self, emoji):
         """Get the name of an emoji"""
@@ -4626,9 +4779,196 @@ class EmojiPicker(QMainWindow):
             # Let the default wheel event handler process the event
             super().wheelEvent(event)
     
+    def init_system_tray(self):
+        """Initialize system tray icon and menu"""
+        # Check if system tray is available
+        if not QSystemTrayIcon.isSystemTrayAvailable():
+            self.tray_icon = None
+            return
+        
+        # Create tray icon
+        self.tray_icon = QSystemTrayIcon(self)
+        
+        # Set tray icon
+        icon_path = self.path_manager.get_misc_file("Kitty-Head.svg")
+        if os.path.exists(icon_path):
+            self.tray_icon.setIcon(QIcon(icon_path))
+        else:
+            self.tray_icon.setIcon(self.windowIcon())
+        
+        self.tray_icon.setToolTip("PurrMoji Emoji Picker")
+        
+        # Create tray menu
+        tray_menu = QMenu()
+        
+        # Show/Hide action
+        self.show_hide_action = QAction("Show PurrMoji", self)
+        self.show_hide_action.triggered.connect(self.toggle_window_visibility)
+        tray_menu.addAction(self.show_hide_action)
+        
+        tray_menu.addSeparator()
+        
+        # Quit action
+        quit_action = QAction("Quit", self)
+        quit_action.triggered.connect(self.quit_application)
+        tray_menu.addAction(quit_action)
+        
+        self.tray_icon.setContextMenu(tray_menu)
+        
+        # Handle tray icon click
+        self.tray_icon.activated.connect(self.on_tray_icon_activated)
+        
+        # Show tray icon if minimize to tray is enabled
+        if self.data_manager.minimize_to_tray:
+            self.tray_icon.show()
+    
+    def init_keyboard_manager(self):
+        """Initialize global keyboard shortcut manager"""
+        # Connect the signal to toggle_window_visibility (thread-safe)
+        self.toggle_visibility_signal.connect(self.toggle_window_visibility)
+        
+        if not PYNPUT_AVAILABLE:
+            self.keyboard_manager = None
+            return
+        
+        self.keyboard_manager = KeyboardManager()
+        
+        # Set hotkey from saved settings
+        self.keyboard_manager.set_hotkey_from_string(self.data_manager.global_hotkey)
+        
+        # Set callback for toggle window
+        self.keyboard_manager.set_callback(self.toggle_window_visibility_from_hotkey)
+        
+        # Start listener if hotkey is enabled
+        if self.data_manager.global_hotkey_enabled:
+            self.keyboard_manager.start()
+    
+    def toggle_window_visibility(self):
+        """Toggle window visibility (show/hide)"""
+        if self.isVisible() and not self.isMinimized():
+            self.hide_window()
+        else:
+            self.show_window()
+    
+    def toggle_window_visibility_from_hotkey(self):
+        """Toggle window visibility from global hotkey (thread-safe)
+        
+        This method is called from the keyboard listener thread,
+        so we emit a signal that is handled on the main Qt thread.
+        """
+        # Emit signal to run toggle on the main Qt thread (thread-safe)
+        self.toggle_visibility_signal.emit()
+    
+    def show_window(self):
+        """Show and activate the window, forcing it to foreground on Windows"""
+        # First, ensure window is visible
+        self.show()
+        self.showNormal()
+        
+        # On Windows, we need to use native API to force foreground
+        if platform.system() == "Windows":
+            try:
+                # Get the window handle
+                hwnd = int(self.winId())
+                
+                # Import Windows API functions
+                user32 = ctypes.windll.user32
+                
+                # Trick to allow SetForegroundWindow: simulate alt key press
+                # This bypasses Windows restrictions on foreground window changes
+                user32.keybd_event(0x12, 0, 0, 0)  # Alt key down
+                user32.keybd_event(0x12, 0, 2, 0)  # Alt key up
+                
+                # Now set foreground window
+                user32.SetForegroundWindow(hwnd)
+                
+                # Also try ShowWindow with SW_RESTORE (9)
+                user32.ShowWindow(hwnd, 9)
+            except Exception:
+                pass  # Silently ignore Windows API errors
+        
+        # Qt methods for cross-platform
+        self.activateWindow()
+        self.raise_()
+        
+        # Update tray menu text
+        if self.tray_icon:
+            self.show_hide_action.setText("Hide PurrMoji")
+    
+    def hide_window(self):
+        """Hide the window (to tray or taskbar)"""
+        if self.data_manager.minimize_to_tray and self.tray_icon:
+            self.hide()
+        else:
+            self.showMinimized()
+        
+        # Update tray menu text
+        if self.tray_icon:
+            self.show_hide_action.setText("Show PurrMoji")
+    
+    def on_tray_icon_activated(self, reason):
+        """Handle tray icon activation
+        
+        Args:
+            reason: Activation reason (click, double-click, etc.)
+        """
+        if reason == QSystemTrayIcon.DoubleClick:
+            self.toggle_window_visibility()
+        elif reason == QSystemTrayIcon.Trigger:
+            # Single click on Windows shows the menu by default
+            # On other platforms, toggle visibility
+            if platform.system() != "Windows":
+                self.toggle_window_visibility()
+    
+    def update_tray_icon_visibility(self):
+        """Update system tray icon visibility based on settings"""
+        if not self.tray_icon:
+            return
+        
+        if self.data_manager.minimize_to_tray:
+            self.tray_icon.show()
+        else:
+            self.tray_icon.hide()
+    
+    def update_global_hotkey(self):
+        """Update global hotkey settings from data manager"""
+        if not self.keyboard_manager:
+            return
+        
+        # Stop current listener
+        self.keyboard_manager.stop()
+        
+        # Update hotkey
+        self.keyboard_manager.set_hotkey_from_string(self.data_manager.global_hotkey)
+        
+        # Restart listener if enabled
+        if self.data_manager.global_hotkey_enabled:
+            self.keyboard_manager.start()
+    
+    def quit_application(self):
+        """Quit the application completely"""
+        # Stop keyboard manager
+        if hasattr(self, 'keyboard_manager') and self.keyboard_manager:
+            self.keyboard_manager.stop()
+        
+        # Hide tray icon
+        if hasattr(self, 'tray_icon') and self.tray_icon:
+            self.tray_icon.hide()
+        
+        # Save data and quit
+        self.save_recent_emojis()
+        QApplication.quit()
+    
     def closeEvent(self, event):
         """Handle window close event"""
-        self.save_recent_emojis()
+        # If minimize to tray is enabled, hide instead of closing
+        if self.data_manager.minimize_to_tray and self.tray_icon and self.tray_icon.isVisible():
+            event.ignore()
+            self.hide_window()
+            return
+        
+        # Otherwise, quit normally
+        self.quit_application()
         event.accept()
     
     
@@ -4773,22 +5113,38 @@ class EmojiPicker(QMainWindow):
         self.handle_item_click(filename, button, 'single')
     
     def on_custom_emoji_double_click(self, filename, button=None):
-        """Handle custom emoji button double click - copy image to clipboard"""
-        self.handle_item_click(filename, button, 'double')
+        """Handle custom emoji button double click"""
+        self.handle_item_click(filename, button, 'Double-click')
     
     def on_custom_emoji_shift_click(self, filename, button=None):
-        """Handle custom emoji button Shift+Click for custom package"""
-        self.handle_item_click(filename, button, 'shift')
+        """Handle custom emoji button Shift+Click"""
+        self.handle_item_click(filename, button, 'Shift+Click')
+    
+    def on_custom_emoji_ctrl_click(self, filename, button=None):
+        """Handle custom emoji button Ctrl+Click"""
+        self.handle_item_click(filename, button, 'Ctrl+Click')
+    
+    def on_custom_emoji_alt_click(self, filename, button=None):
+        """Handle custom emoji button Alt+Click"""
+        self.handle_item_click(filename, button, 'Alt+Click')
     
     def on_kaomoji_click(self, kaomoji, button=None):
-        """Handle kaomoji button single click - select and display preview"""
-        self.handle_item_click(kaomoji, button, 'single')
+        """Handle kaomoji button single click"""
+        self.handle_item_click(kaomoji, button, 'Click')
     
     def on_kaomoji_double_click(self, kaomoji, button=None):
-        """Handle kaomoji button double click - copy text to clipboard and add to recent"""
-        self.handle_item_click(kaomoji, button, 'double')
+        """Handle kaomoji button double click"""
+        self.handle_item_click(kaomoji, button, 'Double-click')
     
     def on_kaomoji_shift_click(self, kaomoji, button=None):
-        """Handle kaomoji button Shift+Click - toggle favorites (add/remove)"""
-        self.handle_item_click(kaomoji, button, 'shift')
+        """Handle kaomoji button Shift+Click"""
+        self.handle_item_click(kaomoji, button, 'Shift+Click')
+    
+    def on_kaomoji_ctrl_click(self, kaomoji, button=None):
+        """Handle kaomoji button Ctrl+Click"""
+        self.handle_item_click(kaomoji, button, 'Ctrl+Click')
+    
+    def on_kaomoji_alt_click(self, kaomoji, button=None):
+        """Handle kaomoji button Alt+Click"""
+        self.handle_item_click(kaomoji, button, 'Alt+Click')
     

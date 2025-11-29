@@ -17,6 +17,7 @@ from .package_initializer import PackageInitializer
 from .theme_manager import ThemeManager
 from .zip_extractor import ZipExtractor
 from .font_manager import FontManager
+from .keyboard_manager import KeyboardManager, PYNPUT_AVAILABLE
 
 __all__ = [
     'PathManager',
@@ -27,6 +28,8 @@ __all__ = [
     'PackageInitializer',
     'ThemeManager',
     'ZipExtractor',
-    'FontManager'
+    'FontManager',
+    'KeyboardManager',
+    'PYNPUT_AVAILABLE'
 ]
 
