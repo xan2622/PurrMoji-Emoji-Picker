@@ -1,6 +1,9 @@
 # PurrMoji Emoji Picker
 
-[![Downloads@latest](https://img.shields.io/github/downloads/xan2622/PurrMoji-Emoji-Picker/v1.2.0/total?color=21aa21&style=for-the-badge)](https://github.com/xan2622/PurrMoji-Emoji-Picker/releases/download/v1.2.0/PurrMoji_Emoji_Picker-1.2.0-windows-x64.zip) ¯¯ ![Static Badge](https://img.shields.io/badge/zip%20-%20windows?style=for-the-badge&label=windows&color=0077d7) ![Static Badge](https://img.shields.io/badge/rpm%20-%20linux?style=for-the-badge&label=linux&color=51a2da) ![Static Badge](https://img.shields.io/badge/deb%20-%20linux?style=for-the-badge&label=linux&color=ce0056)
+[![Downloads@latest](https://img.shields.io/github/downloads/xan2622/PurrMoji-Emoji-Picker/v1.2.0/total?color=21aa21&style=for-the-badge)](https://github.com/xan2622/PurrMoji-Emoji-Picker/releases) ¯¯
+[![](https://img.shields.io/badge/zip%20-%20windows?style=for-the-badge&label=windows&color=0077d7)](https://github.com/xan2622/PurrMoji-Emoji-Picker/releases/download/v1.2.0/PurrMoji_Emoji_Picker-1.2.0-windows-x64.zip)
+[![](https://img.shields.io/badge/rpm%20-%20linux?style=for-the-badge&label=linux&color=51a2da)](https://github.com/xan2622/PurrMoji-Emoji-Picker/releases/download/v1.2.0/purrmoji-1.2.0-1.x86_64.rpm)
+[![](https://img.shields.io/badge/deb%20-%20linux?style=for-the-badge&label=linux&color=ce0056)](https://github.com/xan2622/PurrMoji-Emoji-Picker/releases/download/v1.2.0/purrmoji_1.2.0_amd64.deb)
 
 [![Release Version Badge](https://img.shields.io/github/v/release/xan2622/PurrMoji-Emoji-Picker?color=a235a2&style=for-the-badge)](https://github.com/xan2622/PurrMoji-Emoji-Picker/releases)
 [![Issues Badge](https://img.shields.io/github/issues/xan2622/PurrMoji-Emoji-Picker?color=00c000&style=for-the-badge)](https://github.com/xan2622/PurrMoji-Emoji-Picker/issues)
