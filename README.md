@@ -1,5 +1,11 @@
 # PurrMoji Emoji Picker
 
+[![Downloads@latest](https://img.shields.io/github/downloads/xan2622/PurrMoji-Emoji-Picker/v1.2.0/total?color=21aa21&style=for-the-badge)](https://github.com/xan2622/PurrMoji-Emoji-Picker/releases/download/v1.2.0/PurrMoji_Emoji_Picker-1.2.0-windows-x64.zip) ¯¯ ![Static Badge](https://img.shields.io/badge/zip%20-%20windows?style=for-the-badge&label=windows&color=0077d7) ![Static Badge](https://img.shields.io/badge/rpm%20-%20linux?style=for-the-badge&label=linux&color=51a2da) ![Static Badge](https://img.shields.io/badge/deb%20-%20linux?style=for-the-badge&label=linux&color=ce0056)
+
+[![Release Version Badge](https://img.shields.io/github/v/release/xan2622/PurrMoji-Emoji-Picker?color=a235a2&style=for-the-badge)](https://github.com/xan2622/PurrMoji-Emoji-Picker/releases)
+[![Issues Badge](https://img.shields.io/github/issues/xan2622/PurrMoji-Emoji-Picker?color=00c000&style=for-the-badge)](https://github.com/xan2622/PurrMoji-Emoji-Picker/issues)
+[![Closed Issues Badge](https://img.shields.io/github/issues-closed/xan2622/PurrMoji-Emoji-Picker?color=ff0000&style=for-the-badge)](https://github.com/xan2622/PurrMoji-Emoji-Picker/issues?q=is%3Aissue+is%3Aclosed)<br>
+
 **PurrMoji** is a lightweight cross-platform open-source emoji picker designed to make browsing, searching, and copying emojis quick and easy.
 
 <img width="30%" height="30%" alt="light theme" src="https://github.com/xan2622/PurrMoji-Emoji-Picker/blob/Skia-Python_PyQt5/images/screenshot_light.png" /> <img width="30%" height="30%" alt="medium theme" src="https://github.com/xan2622/PurrMoji-Emoji-Picker/blob/Skia-Python_PyQt5/images/screenshot_medium.png" /> <img width="30%" height="30%" alt="dark theme" src="https://github.com/xan2622/PurrMoji-Emoji-Picker/blob/Skia-Python_PyQt5/images/screenshot_dark.png" />
@@ -50,6 +56,10 @@ If you have ideas or want to report a bug about **PurrMoji**, feel free to [open
 If you want to contribute to the emoji library projects themselves, please visit their respective repositories linked above.
 
 If you want to chat about PurrMoji, you can join my Discord server: [https://discord.gg/DSVQthQKsf](https://discord.gg/DSVQthQKsf)
+
+
+<details> 
+  <summary>----- Other info -----</summary>
 
 ## ⚙️ Under the hood
 
@@ -108,3 +118,5 @@ The "Custom" folder allows you to add your own PNG/SVG/TTF icons or emojis. The 
 ### PurrMoji
 
 - PurrMoji has been released under the [GPL 3.0 license](https://www.gnu.org/licenses/gpl-3.0.en.html). This license only covers the source code of PurrMoji.
+
+</details>
